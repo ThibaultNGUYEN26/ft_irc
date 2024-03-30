@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/03/20 14:57:30 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/03/21 15:33:14 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <sstream>
+#include <string>
 
 #define EOC "\033[1;1;0m"
 #define RED "\033[1;31m"
@@ -28,6 +30,14 @@ class Ircserv {
 
 public:
 
+	Ircserv(std::string &port, std::string &password);
+	~Ircserv();
+
+	void runServer();
+
 private:
+
+	int _port;
+	std::string _password;
 
 };

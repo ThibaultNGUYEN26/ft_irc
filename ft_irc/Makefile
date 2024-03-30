@@ -6,7 +6,7 @@
 #    By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/03/16 12:31:25 by thibnguy         ###   ########.fr        #
+#    Updated: 2024/03/21 15:26:26 by thibnguy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,8 @@ SOURCES		=	.
 OBJECTS		=	./bin
 INCLUDES	=	.
 
-SRCS		=	main.cpp
+SRCS		=	Ircserv.cpp \
+				main.cpp
 
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))
 
