@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:25:30 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/03/21 15:33:32 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/03/30 15:51:38 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
 	std::string password = argv[2];
 	
 	Ircserv server(port, password);
+	server.initServer();
 	server.runServer();
 	
 	return 0;
