@@ -10,4 +10,4 @@ RUN apk update && apk add irssi
 # Définir le point d'entrée pour irssi
 ENTRYPOINT ["irssi"]
 
-# vim ~./zshrc add alias little_irssi='docker run -it little_irssi'
+# vim ~./zshrc add docker build -t little_irssi .; alias little_irssi='docker run -it little_irssi'

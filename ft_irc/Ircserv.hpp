@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/01 15:52:14 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/01 17:32:49 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,9 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <unistd.h>
+#include <poll.h>
+#include <vector>
 
 #include <cstring>
 #include <netdb.h>
@@ -43,17 +46,19 @@ struct t_server {
 };
 
 class Ircserv {
-	public:
 
-		Ircserv(std::string &port, std::string &password);
-		~Ircserv();
-		
-		void initServer();
-		void runServer();
+public:
 
-	private:
-		int _port;
-		std::string _password;
-		struct t_server	 _server;
-		std::map<std::string, Client>	clients;
+	Ircserv(std::string &port, std::string &password);
+	~Ircserv();
+	
+	void initServer();
+	void runServer();
+
+private:
+	int _port;
+	std::string _password;
+	struct t_server	 _server;
+	std::map<std::string, Client>	clients;
+
 };

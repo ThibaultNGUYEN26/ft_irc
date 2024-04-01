@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/01 16:33:47 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/01 17:36:36 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,10 @@ Ircserv::Ircserv(std::string &port, std::string &password) : _password(password)
 	}
 }
 
-Ircserv::~Ircserv() {}
+Ircserv::~Ircserv() {
+	freeaddrinfo(_server.res); // Ensure resources are freed
+	close(_server.sfd); // Close the server socket
+}
 
 void Ircserv::initServer() {
 	// Initiliazing address structs with getaddrinfo()
@@ -57,23 +60,63 @@ void Ircserv::initServer() {
 
 void Ircserv::runServer() {
 	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
+    // Array of pollfd structures for monitoring file descriptors
+    std::vector<struct pollfd> fds;
 
-	// Accept incoming connections
-	struct sockaddr_storage clientAddr;
-	socklen_t clientAddrSize = sizeof clientAddr;
-	int clientSocket;
+    // Add the server socket to the monitoring set for incoming connections (POLLIN event)
+    struct pollfd listen_fd;
+    listen_fd.fd = _server.sfd; 
+    listen_fd.events = POLLIN;
+    listen_fd.revents = 0;
+    fds.push_back(listen_fd);
 
-	while (true) {
-		clientSocket = accept(_server.sfd, (struct sockaddr *)&clientAddr, &clientAddrSize);
-		if (clientSocket < 0) {	
-			error("Failure to accept connection.");
-		}	
-		// Now we have a connected socket in clientSocket to communicate with the IRC client.
-		// You can handle this connection as needed, e.g., by creating a new thread to handle the client or using non-blocking I/O.
+    while (true) {
+        // Wait for an event on any of the monitored file descriptors
+        int ret = poll(fds.data(), fds.size(), -1); // -1 means no timeout
+        if (ret < 0) {
+            error("poll");
+            exit(EXIT_FAILURE);
+        }
 
-		Client	client(_port);
-		//this->clients.insert(nickname, client)
-	}
+        for (size_t i = 0; i < fds.size(); i++) {
+            if (fds[i].revents & POLLIN) {
+                if (fds[i].fd == _server.sfd) {
+                    // Listening socket is ready, meaning an incoming connection
+                    struct sockaddr_storage clientAddr;
+                    socklen_t clientAddrSize = sizeof(clientAddr);
+                    int clientSocket = accept(_server.sfd, (struct sockaddr *)&clientAddr, &clientAddrSize);
+                    if (clientSocket < 0) {
+                        error("accept");
+                        continue;
+                    }
+                    
+                    // Add the new client socket to the monitoring set
+                    struct pollfd client_fd;
+                    client_fd.fd = clientSocket; 
+                    client_fd.events = POLLIN; // Monitor for reading
+                    client_fd.revents = 0;
+                    fds.push_back(client_fd);
+                    
+                    std::cout << "New connection accepted." << std::endl;
+                } else {
+                    // An existing client socket is ready for reading
+                    char buffer[1024];
+                    memset(buffer, 0, sizeof(buffer));
+                    ssize_t bytesRead = read(fds[i].fd, buffer, sizeof(buffer) - 1);
 
-	freeaddrinfo(_server.res);
+                    if (bytesRead > 0) {
+                        std::cout << "Received message: " << buffer << std::endl;
+                        // Echo the message back to the client as an example response
+                        write(fds[i].fd, buffer, bytesRead);
+                    } else {
+                        // Connection closed by client or error reading
+                        close(fds[i].fd);
+                        fds.erase(fds.begin() + i); // Remove from set
+                        std::cout << "Client disconnected." << std::endl;
+                        --i; // Adjust index after removal
+                    }
+                }
+            }
+        }
+    }
 }
