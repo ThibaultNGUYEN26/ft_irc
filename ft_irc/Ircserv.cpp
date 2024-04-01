@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Ircserv.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
+/*   Updated: 2024/04/01 16:33:47 by rchbouki         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Ircserv.hpp"
 
 static void error(const std::string &msg)
@@ -24,7 +36,7 @@ void Ircserv::initServer() {
 	// Initiliazing address structs with getaddrinfo()
 	std::stringstream	ss;
 
-    ss << _port;
+	ss << _port;
 	memset(&(_server.hints), 0, sizeof _server.hints);
 	_server.hints.ai_family = AF_UNSPEC;
 	_server.hints.ai_socktype = SOCK_STREAM;
@@ -47,18 +59,21 @@ void Ircserv::runServer() {
 	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
 
 	// Accept incoming connections
-    struct sockaddr_storage clientAddr;
-    socklen_t clientAddrSize = sizeof clientAddr;
-    int clientSocket;
+	struct sockaddr_storage clientAddr;
+	socklen_t clientAddrSize = sizeof clientAddr;
+	int clientSocket;
 
-    while (true) {
-        clientSocket = accept(_server.sfd, (struct sockaddr *)&clientAddr, &clientAddrSize);
-        if (clientSocket < 0) {	
-            error("Failure to accept connection.");
-        }	
+	while (true) {
+		clientSocket = accept(_server.sfd, (struct sockaddr *)&clientAddr, &clientAddrSize);
+		if (clientSocket < 0) {	
+			error("Failure to accept connection.");
+		}	
 		// Now we have a connected socket in clientSocket to communicate with the IRC client.
-        // You can handle this connection as needed, e.g., by creating a new thread to handle the client or using non-blocking I/O.
-    }
+		// You can handle this connection as needed, e.g., by creating a new thread to handle the client or using non-blocking I/O.
+
+		Client	client(_port);
+		//this->clients.insert(nickname, client)
+	}
 
 	freeaddrinfo(_server.res);
 }

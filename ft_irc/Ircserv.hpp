@@ -6,17 +6,19 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/03/30 15:48:51 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/01 15:52:14 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include "Client.hpp"
 #include <iostream>
 #include <cstdlib>
 #include <sstream>
 #include <string>
 #include <sstream>
+#include <map>
 
 #include <cstring>
 #include <netdb.h>
@@ -50,8 +52,8 @@ class Ircserv {
 		void runServer();
 
 	private:
-		struct t_server _server;
 		int _port;
 		std::string _password;
-
+		struct t_server	 _server;
+		std::map<std::string, Client>	clients;
 };
