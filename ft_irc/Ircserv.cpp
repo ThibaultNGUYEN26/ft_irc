@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/03 16:06:49 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/03 18:55:23 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,10 @@ void Ircserv::initServer() {
 	_server.hints.ai_family = AF_UNSPEC;
 	_server.hints.ai_socktype = SOCK_STREAM;
 	_server.hints.ai_flags = AI_PASSIVE;
-	if (getaddrinfo(NULL, (ss.str()).c_str(), &_server.hints, &_server.res) < 0) {
+	if (getaddrinfo("127.0.0.1", (ss.str()).c_str(), &_server.hints, &_server.res) < 0) {
 		error("Failure to call getaddrinfo().");
 	}
+
 	// Opening, binding and listening on the socket
 	_server.sfd = socket((_server.res)->ai_family, (_server.res)->ai_socktype, (_server.res)->ai_protocol);
 	if (_server.sfd < 0) {
@@ -55,32 +56,42 @@ void Ircserv::initServer() {
 	if (bind(_server.sfd, (_server.res)->ai_addr, (_server.res)->ai_addrlen) < 0) {
 		error("Failure to bind socket.");
 	}
-	listen(_server.sfd, BACKLOG);
-}
-
-void Ircserv::runServer() {
-	std::cout << "Port: " << _port << " | Password: " << _password << std::endl;
-	// Array of pollfd structures for monitoring file descriptors
-	std::vector<struct pollfd> fds;
-
-	// Add the server socket to the monitoring set for incoming connections (POLLIN event)
+	if (listen(_server.sfd, BACKLOG) < 0) {
+		error("Failure to listen on socket.");
+	}
+	/* Add the server listening socket to the monitoring set for incoming connections
+		Initialization :
+		- POLLIN event => there is data to read
+		- revents = 0 => there are no previous events that have occured on this file descriptor
+	*/
 	struct pollfd listen_fd;
 	listen_fd.fd = _server.sfd;
 	listen_fd.events = POLLIN;
 	listen_fd.revents = 0;
-	fds.push_back(listen_fd);
+	(_server.fds).push_back(listen_fd);
+}
+
+void Ircserv::runServer() {
+	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
 
 	while (true) {
-		// Wait for an event on any of the monitored file descriptors
-		int ret = poll(fds.data(), fds.size(), -1); // -1 means no timeout
+		/*
+			Wait for an event on any of the monitored file descriptors using poll()
+			- -1 means no timeout and waits indefinetly for an event to occur on the fds in the pollfd structure
+			- return value : < 0 means failure, 0 means no events, > 0 means events occured
+		*/
+		int ret = poll((_server.fds).data(), (_server.fds).size(), -1); // -1 means no timeout
 		if (ret < 0) {
 			error("poll failure");
 			exit(EXIT_FAILURE);
 		}
-
-		for (size_t i = 0; i < fds.size(); i++) {
-			if (fds[i].revents & POLLIN) {
-				if (fds[i].fd == _server.sfd) {
+		// We go through each file descriptor in the pollfd structure
+		for (size_t i = 0; i < (_server.fds).size(); i++) {
+			// If revents in fd[i] (events occured) and the event is data that is read
+ 			if ((_server.fds[i]).revents & POLLIN) {
+				// If the POLLIN event that occured is in the server's fd => potential client trying to connect
+				if ((_server.fds[i]).fd == _server.sfd) {
+					std::cout << "allo je suis la\n";
 					// Listening socket is ready, meaning an incoming connection
 					struct sockaddr_storage clientAddr;
 					socklen_t clientAddrSize = sizeof(clientAddr);
@@ -90,47 +101,20 @@ void Ircserv::runServer() {
 						continue;
 					}
 
-					// Right after accepting the connection...
-					char buffer[1024];
-					memset(buffer, 0, sizeof(buffer));
-					ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-
-					if (bytesRead <= 0) {
-						// Handle error or closed connection
-						std::cout << "Failed to receive data or connection closed." << std::endl;
-						close(clientSocket);
-					} else {
-						buffer[bytesRead - 1] = '\0'; // Null-terminate the received string
-						std::string receivedCommand(buffer);
-
-						// Assuming a custom protocol where the client sends the password directly
-						std::cout << receivedCommand << "\n" << _password << std::endl;
-						if (receivedCommand == _password) {
-							std::cout << "Password correct. Client connected." << std::endl;
-
-							// If password is correct, proceed to add the client socket to the monitoring set...
-							struct pollfd client_fd;
-							client_fd.fd = clientSocket;
-							client_fd.events = POLLIN; // Monitor for reading
-							fds.push_back(client_fd);
-						} else {
-							std::cout << "Incorrect password. Connection refused." << std::endl;
-							close(clientSocket);
-						}
-					}
+					passCommand(_password, _server, clientSocket);
 				} else {
-					// Existing client socket is ready for reading
+					// Existing client socket had an event that needs to be read
 					char buffer[1024];
 					memset(buffer, 0, sizeof(buffer));
-					ssize_t bytesRead = read(fds[i].fd, buffer, sizeof(buffer) - 1);
+					ssize_t bytesRead = read((_server.fds[i]).fd, buffer, sizeof(buffer) - 1);
 
 					if (bytesRead > 0) {
 						// Here you would handle further commands from the client
 						std::cout << "Received message: " << buffer << std::endl;
 					} else {
 						// Connection closed by client or error reading
-						close(fds[i].fd);
-						fds.erase(fds.begin() + i); // Remove from set
+						close((_server.fds[i]).fd);
+						(_server.fds).erase((_server.fds).begin() + i); // Remove from set
 						std::cout << "Client disconnected." << std::endl;
 						--i; // Adjust index after removal
 					}

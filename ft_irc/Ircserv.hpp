@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/01 17:32:49 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/03 18:55:25 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ struct t_server {
 	int sfd;
 	struct addrinfo	hints;
 	struct addrinfo	*res;
+	// Array of pollfd structures for monitoring file descriptors
+	std::vector<struct pollfd> fds;
 };
 
 class Ircserv {
@@ -62,3 +64,5 @@ private:
 	std::map<std::string, Client>	clients;
 
 };
+
+void passCommand(std::string &_password, struct t_server &_server, int &clientSocket);
