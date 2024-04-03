@@ -6,16 +6,16 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:05 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/01 17:24:24 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/03 15:50:14 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client(int socketFd) : _socketFd(socketFd), _active(true) {}
+Client::Client(int socketClient) : _socketClient(socketClient), _active(true) {}
 
 Client::~Client() {
-    close(_socketFd);
+    close(_socketClient);
 }
 
 bool Client::isActive() const {
@@ -32,7 +32,7 @@ void Client::handleActivity() {
 void Client::readMessage() {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
-    ssize_t bytesRead = read(_socketFd, buffer, sizeof(buffer) - 1);
+    ssize_t bytesRead = read(_socketClient, buffer, sizeof(buffer) - 1);
 
     if (bytesRead > 0) {
         processMessage(std::string(buffer, bytesRead));
@@ -42,7 +42,7 @@ void Client::readMessage() {
 }
 
 void Client::sendMessage(const std::string& message) {
-    write(_socketFd, message.c_str(), message.length());
+    write(_socketClient, message.c_str(), message.length());
 }
 
 void Client::processMessage(const std::string& message) {

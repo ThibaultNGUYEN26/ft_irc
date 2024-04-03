@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:01 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/01 17:34:03 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/03 15:49:41 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ class Client {
 
 public:
 
-	Client(int socketFd);
+	Client(int socketClient);
 	~Client();
 
 	bool isActive() const;
@@ -29,7 +29,7 @@ public:
 
 private:
 
-	int _socketFd;
+	int _socketClient;
 	bool _active;
 
 	void readMessage();

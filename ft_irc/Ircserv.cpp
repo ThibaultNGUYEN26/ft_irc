@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/03 15:27:21 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/03 16:06:49 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ void Ircserv::runServer() {
 
 	// Add the server socket to the monitoring set for incoming connections (POLLIN event)
 	struct pollfd listen_fd;
-	listen_fd.fd = _server.sfd; 
+	listen_fd.fd = _server.sfd;
 	listen_fd.events = POLLIN;
 	listen_fd.revents = 0;
 	fds.push_back(listen_fd);
@@ -90,40 +90,34 @@ void Ircserv::runServer() {
 						continue;
 					}
 
-					// Immediately read for the PASS command
-					char passBuffer[1024];
-					memset(passBuffer, 0, sizeof(passBuffer));
-					ssize_t passBytesRead = read(clientSocket, passBuffer, sizeof(passBuffer) - 1);
+					// Right after accepting the connection...
+					char buffer[1024];
+					memset(buffer, 0, sizeof(buffer));
+					ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
 
-					if (passBytesRead > 0) {
-						std::string command(passBuffer);
-						// Assuming commands are terminated by \r\n
-						if (command.find("PASS") == 0) {
-							std::string clientPass = command.substr(5, command.find("\r\n") - 5);
-							if (clientPass != _password) {
-								std::cout << "Incorrect password from client." << std::endl;
-								close(clientSocket);
-								continue;
-							}
-						} else {
-							std::cout << "First command is not PASS, closing connection." << std::endl;
-							close(clientSocket);
-							continue;
-						}
-					} else {
-						// Handle read error or disconnect...
+					if (bytesRead <= 0) {
+						// Handle error or closed connection
+						std::cout << "Failed to receive data or connection closed." << std::endl;
 						close(clientSocket);
-						continue;
-					}
+					} else {
+						buffer[bytesRead - 1] = '\0'; // Null-terminate the received string
+						std::string receivedCommand(buffer);
 
-					// If password is correct, or if PASS is not enforced, add the client socket to the monitoring set
-					struct pollfd client_fd;
-					client_fd.fd = clientSocket; 
-					client_fd.events = POLLIN; // Monitor for reading
-					client_fd.revents = 0;
-					fds.push_back(client_fd);
-					
-					std::cout << "New connection accepted." << std::endl;
+						// Assuming a custom protocol where the client sends the password directly
+						std::cout << receivedCommand << "\n" << _password << std::endl;
+						if (receivedCommand == _password) {
+							std::cout << "Password correct. Client connected." << std::endl;
+
+							// If password is correct, proceed to add the client socket to the monitoring set...
+							struct pollfd client_fd;
+							client_fd.fd = clientSocket;
+							client_fd.events = POLLIN; // Monitor for reading
+							fds.push_back(client_fd);
+						} else {
+							std::cout << "Incorrect password. Connection refused." << std::endl;
+							close(clientSocket);
+						}
+					}
 				} else {
 					// Existing client socket is ready for reading
 					char buffer[1024];
