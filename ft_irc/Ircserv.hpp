@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/03 18:55:25 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/04 15:34:21 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
 
 #define EOC "\033[1;1;0m"
 #define RED "\033[1;31m"
@@ -41,8 +43,8 @@
 
 struct t_server {
 	int sfd;
-	struct addrinfo	hints;
-	struct addrinfo	*res;
+	sockaddr_in	hints;
+	sockaddr_in	*res;
 	// Array of pollfd structures for monitoring file descriptors
 	std::vector<struct pollfd> fds;
 };
@@ -66,3 +68,5 @@ private:
 };
 
 void passCommand(std::string &_password, struct t_server &_server, int &clientSocket);
+void nickCommand(struct t_server &_server, int &clientSocket);	
+void handleRegistration(int sockfd);
