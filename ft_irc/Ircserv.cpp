@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/04 20:00:37 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/05 21:40:17 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,70 +68,64 @@ void Ircserv::initServer() {
 }
 
 bool validateClientPassword(int clientSocket, const std::string& _password) {
-	for (int i = 0; i < 3; i++)
+	bool	gotPassword = false, gotUsername = false, gotNickname = false;
+	std::string nick;
+
+	while (!gotNickname || !gotUsername || !gotPassword)
 	{
 		char buffer[1024];
+
 		memset(buffer, 0, sizeof(buffer));
 		ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-
 		if (bytesRead <= 0) {
 			std::cout << "Failed to receive data or connection closed." << std::endl;
 			return false; // Failed to read data
 		}
-		
 		buffer[bytesRead] = '\0'; // Null-terminate the received string
-		std::cout << "*" << buffer << "*" << std::endl;
-		if (strcmp(buffer, "CAP LS 302\r\n") == 0) {
-			continue;
-		}
-		
+		// std::cout << "*" << buffer << "*" << std::endl;
+
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
-		std::string command, receivedPassword;
-		iss >> command >> receivedPassword;
+		std::string	cmd;
 
-		/* if (receivedCommand == "CAP LS 302") {
-			std::cout << "je suis la" << std::endl;
-			continue;
-		} */
-		if (command == "PASS") {
-			if (receivedPassword != _password) {
-				std::cout << "Incorrect password. Connection refused." << receivedPassword << std::endl;
-				return false;
+		while (std::getline(iss, cmd, ' ')) {
+			// std::cout << "-" << cmd << "-" << std::endl;
+			if (cmd == "CAP") {
+				std::getline(iss, cmd, '\r');
+				// std::cout << "--" << cmd << "--" << std::endl;
 			}
-		}
-		if (command == "NICK") {
-			std::cout << receivedPassword << std::endl;
+			else if (cmd == "PASS") {
+				std::string	receivedPassword;
+				std::getline(iss, receivedPassword, '\r');
+				// std::cout << "--" << receivedPassword << "--" << std::endl;
+				if (receivedPassword != _password) {
+					std::cout << "Incorrect password. Connection refused." << receivedPassword << std::endl;
+					return false;
+				}
+				gotPassword = true;
+			}
+			else if (cmd == "NICK") {
+				std::string	receivedNickname;
+				std::getline(iss, receivedNickname, '\r');
+				// std::cout << "--" << receivedNickname << "--" << std::endl;
+				nick = receivedNickname;
+				gotNickname = true;
+				// std::cout << "--" << cmd << "--" << std::endl;
+			}
+			else if (cmd == "USER") {
+				std::string	receivedUsername;
+				std::getline(iss, receivedUsername, ' ');
+				// std::cout << "--" << receivedUsername << "--" << std::endl;
+				gotUsername = true;
+				break;
+			}
+			std::getline(iss, cmd, '\n');
 		}
 	}
-	std::cout << "Client successfully connected." << std::endl;
+	std::cout << GREEN "Client " << nick << " successfully connected." EOC << std::endl;
 	return true;
 }
 
-static void handleClientCommand(int clientSocket, const std::string& command, const std::string& _password) {
-	std::istringstream iss(command);
-	std::string cmd;
-	iss >> cmd;
-	if (cmd == "PASS") {
-		std::string password;
-		iss >> password;
-		if (password != _password) {
-			std::cout << "Incorrect password. Connection refused." << std::endl;
-			close(clientSocket); // Close the connection if the password is incorrect
-		} else {
-			std::cout << "PASS command received." << std::endl;
-			// Proceed with additional registration steps as needed
-		}
-	} else if (cmd == "NICK") {
-		// Handle NICK command
-		std::cout << "NICK command received." << std::endl;
-	} else if (cmd == "USER") {
-		// Handle USER command
-		std::cout << "USER command received." << std::endl;
-	} else {
-		// Handle other commands or ignore
-	}
-}
 
 void Ircserv::runServer() {
 	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
@@ -169,9 +163,6 @@ void Ircserv::runServer() {
 					newfd.fd = clientSocket;
 					newfd.events = POLLIN;
 					_server.fds.push_back(newfd);
-					// passCommand(_password, _server, clientSocket);
-					// nickCommand(_server, clientSocket);
-					// handleRegistration(_server.sfd);
 				} else {
 					// Existing client socket had an event that needs to be read
 					char buffer[1024];
@@ -181,12 +172,11 @@ void Ircserv::runServer() {
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0'; // Ensure null-terminated
 						std::string command(buffer);
-						handleClientCommand(_server.fds[i].fd, command, _password);
 					} else {
 						// Connection closed by client or error reading
 						close((_server.fds[i]).fd);
 						(_server.fds).erase((_server.fds).begin() + i); // Remove from set
-						std::cout << "Client disconnected." << std::endl;
+						std::cout << BLUE "Client disconnected." EOC << std::endl;
 						--i; // Adjust index after removal
 					}
 				}
