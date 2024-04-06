@@ -6,7 +6,7 @@
 #    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/04/06 18:24:32 by rchbouki         ###   ########.fr        #
+#    Updated: 2024/04/06 21:16:32 by rchbouki         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ SRCS		=	Ircserv.cpp \
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))
 
 CC			=	c++ -std=c++98
-CFLAGS		=	-Wall -Wextra -Werror -g -fsanitize=address -fsanitize=undefined -pedantic
+CFLAGS		=	-Wall -Wextra -Werror -g #-fsanitize=address -fsanitize=undefined -pedantic
 CINCLUDES	=	-I ${INCLUDES}
 
 BLACK		=	"\033[1;30m"

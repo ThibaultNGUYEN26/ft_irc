@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/06 22:00:55 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 22:07:11 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,13 @@ Ircserv::Ircserv(std::string &port, std::string &password) : _password(password)
 }
 
 Ircserv::~Ircserv() {
-	close(_server.sfd); // Close the server socket
+	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		delete(it->second);
+		_clients.erase(_clients.find(it->first));
+	}
+	for (size_t i = 0; i < (_server.fds).size(); i++) {
+		close((_server.fds[i]).fd);
+	}
 }
 
 void Ircserv::initServer() {
@@ -75,7 +81,7 @@ bool	Ircserv::isValidNickname(const std::string& nickname) {
 	return true;
 }
 
-bool Ircserv::validateClientCommands(int clientSocket, const std::string& _password) {
+bool Ircserv::validateClientCommands(int& clientSocket, const std::string& _password) {
 	bool	gotPassword = false, gotUsername = false, gotNickname = false;
 	std::string	receivedNickname;
 	std::string	receivedUsername;
@@ -127,13 +133,13 @@ bool Ircserv::validateClientCommands(int clientSocket, const std::string& _passw
 		}
 	}
 	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
-	
+
+	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
+	/* // DISPLAY _clients
 	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		std::cout << "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "}" << std::endl;
-	}
-
-	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
+	} */
 	return true;
 }
 
@@ -141,6 +147,7 @@ void	Ircserv::eraseClient(int &clientSocket) {
 	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
 			std::cout << BLUE "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "} disconnected." EOC << std::endl;
+			delete(it->second);
 			_clients.erase(_clients.find(it->first));
 			break;
 		}
@@ -208,7 +215,8 @@ void Ircserv::runServer() {
 					}
 					pollfd newfd = {clientSocket, POLLIN, 0};
 					_server.fds.push_back(newfd);
-				} else {
+				}
+				else {
 					// Existing client socket had an event that needs to be read
 					char buffer[1024];
 					memset(buffer, 0, sizeof(buffer));

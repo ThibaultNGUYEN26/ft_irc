@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/06 21:22:22 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 22:07:34 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ typedef struct t_server {
 	int sfd;
 	sockaddr_in	hints;
 	sockaddr_in	*res;
-	std::vector<struct pollfd> fds;
+	std::vector<pollfd> fds;
 } s_server;
 
 class Ircserv {
@@ -60,7 +60,7 @@ public:
 	void handleJoinCommand(int clientSocket, const std::string& channelName);
 
 	bool	isValidNickname(const std::string& nickname);
-	bool	validateClientCommands(int clientSocket, const std::string& _password);
+	bool	validateClientCommands(int& clientSocket, const std::string& _password);
 
 private:
 	int _port;
