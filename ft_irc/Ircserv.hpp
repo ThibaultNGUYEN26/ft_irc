@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/06 20:20:29 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/06 21:13:33 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ typedef struct t_server {
 	int sfd;
 	sockaddr_in	hints;
 	sockaddr_in	*res;
-	std::vector<struct pollfd> fds;
+	std::vector<pollfd> fds;
 } s_server;
 
 class Ircserv {
