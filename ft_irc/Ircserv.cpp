@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/06 19:38:50 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 22:00:55 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,6 +119,8 @@ bool Ircserv::validateClientCommands(int clientSocket, const std::string& _passw
 			else if (cmd == "USER") {
 				std::getline(iss, receivedUsername, ' ');
 				gotUsername = true;
+				std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
+				send(clientSocket, welcome.c_str(), welcome.length(), 0);
 				break;
 			}
 			std::getline(iss, cmd, '\n');
@@ -141,6 +143,33 @@ void	Ircserv::eraseClient(int &clientSocket) {
 			std::cout << BLUE "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "} disconnected." EOC << std::endl;
 			_clients.erase(_clients.find(it->first));
 			break;
+		}
+	}
+}
+
+void Ircserv::handleJoinCommand(int clientSocket, const std::string& channelName) {
+	// Check if the channel exists, create it if not
+	std::map<std::string, std::vector<int> >::iterator it = _channels.find(channelName);
+	if (it == _channels.end()) {
+		// Since we can't directly emplace in C++98, we create the vector first
+		std::vector<int> clientSockets;
+		clientSockets.push_back(clientSocket);
+		_channels.insert(std::make_pair(channelName, clientSockets));
+	} else {
+		// Channel exists, add the client to the channel
+		it->second.push_back(clientSocket);
+	}
+
+	// Send JOIN message back to the client to confirm
+	std::string joinConfirm = "JOIN " + channelName + "\r\n";
+	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
+
+	// Notify all clients in the channel about the new member
+	std::string joinNotification = "A new user has joined " + channelName + "\r\n";
+	std::vector<int>& members = _channels[channelName];
+	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
+		if (*memberIt != clientSocket) { // Don't send notification to the user who just joined
+			send(*memberIt, joinNotification.c_str(), joinNotification.size(), 0);
 		}
 	}
 }
@@ -188,6 +217,18 @@ void Ircserv::runServer() {
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0'; // Ensure null-terminated
 						std::string command(buffer);
+
+						// Print the received command to the console
+						std::cout << "Received command from client: " << buffer << std::endl;
+						
+						// Now check if the command is a JOIN command
+						if (command.find("JOIN") == 0) {
+							// Extract the channel name from the command
+							std::string channelName = command.substr(5); // Adjust based on actual command format
+							handleJoinCommand(_server.fds[i].fd, channelName); // Handle the JOIN command
+						}
+
+						// Here, you would further process 'command' as needed by your server
 					} else {
 						// Connection closed by client or error reading
 						(_server.fds).erase((_server.fds).begin() + i);

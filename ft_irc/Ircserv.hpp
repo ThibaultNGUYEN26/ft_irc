@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/06 19:33:08 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 21:22:22 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ public:
 	void	initServer();
 	void	runServer();
 	void	eraseClient(int &clientSocket);
+	void handleJoinCommand(int clientSocket, const std::string& channelName);
 
 	bool	isValidNickname(const std::string& nickname);
 	bool	validateClientCommands(int clientSocket, const std::string& _password);
@@ -66,4 +67,5 @@ private:
 	std::string _password;
 	s_server	_server;
 	std::map<std::string, Client *>	_clients;
+	std::map< std::string, std::vector<int> > _channels;
 };
