@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/06 18:56:32 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/06 19:38:50 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ Ircserv::Ircserv(std::string &port, std::string &password) : _password(password)
 }
 
 Ircserv::~Ircserv() {
-	//freeaddrinfo(_server.res); // Ensure resources are freed
 	close(_server.sfd); // Close the server socket
 }
 
@@ -89,25 +88,21 @@ bool Ircserv::validateClientCommands(int clientSocket, const std::string& _passw
 		ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
 		if (bytesRead <= 0) { 
 			std::cout << "Failed to receive data or connection closed." << std::endl;
-			return false; // Failed to read data
+			return false;
 		}
-		buffer[bytesRead] = '\0'; // Null-terminate the received string
-		std::cout << "*" << buffer << "*" << std::endl;
+		buffer[bytesRead] = '\0';
 
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
 		std::string	cmd;
 
 		while (std::getline(iss, cmd, ' ')) {
-			// std::cout << "-" << cmd << "-" << std::endl;
 			if (cmd == "CAP") {
 				std::getline(iss, cmd, '\r');
-				// std::cout << "--" << cmd << "--" << std::endl;
 			}
 			else if (cmd == "PASS") {
 				std::string	receivedPassword;
 				std::getline(iss, receivedPassword, '\r');
-				// std::cout << "--" << receivedPassword << "--" << std::endl;
 				if (receivedPassword != _password) {
 					std::cout << "Incorrect password. Connection refused." << receivedPassword << std::endl;
 					return false;
@@ -116,32 +111,34 @@ bool Ircserv::validateClientCommands(int clientSocket, const std::string& _passw
 			}
 			else if (cmd == "NICK") {
 				std::getline(iss, receivedNickname, '\r');
-				// std::cout << "--" << receivedNickname << "--" << std::endl;
 				if (!isValidNickname(receivedNickname)) {
 					return false;
 				}
 				gotNickname = true;
-				// std::cout << "--" << cmd << "--" << std::endl;
 			}
 			else if (cmd == "USER") {
 				std::getline(iss, receivedUsername, ' ');
-				// std::cout << "--" << receivedUsername << "--" << std::endl;
 				gotUsername = true;
 				break;
 			}
 			std::getline(iss, cmd, '\n');
 		}
 	}
-	Client newClient(clientSocket, receivedUsername, receivedNickname);
-	_clients.insert(std::make_pair(receivedNickname, newClient));
-	std::cout << GREEN "Client : {" << newClient.getNickname() << ", " << newClient.getUsername() << ", " << newClient.getSocket() << "} successfully connected." EOC << std::endl;
+	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
+	
+	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++)
+	{
+		std::cout << "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "}" << std::endl;
+	}
+
+	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
 	return true;
 }
 
 void	Ircserv::eraseClient(int &clientSocket) {
-	for (std::map<std::string, Client>::iterator it = _clients.begin(); it != _clients.end(); it++) {
-		if ((it->second).getSocket() == clientSocket) {
-			std::cout << BLUE "Client : {" << (it->second).getNickname() << ", " << (it->second).getUsername() << ", " << (it->second).getSocket() << "} disconnected." EOC << std::endl;
+	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			std::cout << BLUE "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "} disconnected." EOC << std::endl;
 			_clients.erase(_clients.find(it->first));
 			break;
 		}
