@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/06 19:33:08 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 20:20:29 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ public:
 	void	eraseClient(int &clientSocket);
 
 	bool	isValidNickname(const std::string& nickname);
-	bool	validateClientCommands(int clientSocket, const std::string& _password);
+	bool	validateClientCommands(int& clientSocket, const std::string& _password);
 
 private:
 	int _port;

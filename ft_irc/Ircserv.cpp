@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/06 19:38:50 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 20:57:08 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ bool	Ircserv::isValidNickname(const std::string& nickname) {
 	return true;
 }
 
-bool Ircserv::validateClientCommands(int clientSocket, const std::string& _password) {
+bool Ircserv::validateClientCommands(int& clientSocket, const std::string& _password) {
 	bool	gotPassword = false, gotUsername = false, gotNickname = false;
 	std::string	receivedNickname;
 	std::string	receivedUsername;
@@ -125,7 +125,7 @@ bool Ircserv::validateClientCommands(int clientSocket, const std::string& _passw
 		}
 	}
 	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
-	
+
 	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++)
 	{
 		std::cout << "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "}" << std::endl;
@@ -173,13 +173,15 @@ void Ircserv::runServer() {
 						error("accept failure");
 						continue;
 					}
+					std::cout << "Client socket : " << clientSocket << std::endl;
 					if (!validateClientCommands(clientSocket, _password)) {
 						close(clientSocket);
 						continue;
 					}
 					pollfd newfd = {clientSocket, POLLIN, 0};
 					_server.fds.push_back(newfd);
-				} else {
+				}
+				else {
 					// Existing client socket had an event that needs to be read
 					char buffer[1024];
 					memset(buffer, 0, sizeof(buffer));
@@ -188,6 +190,7 @@ void Ircserv::runServer() {
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0'; // Ensure null-terminated
 						std::string command(buffer);
+						std::cout << command << std::endl;
 					} else {
 						// Connection closed by client or error reading
 						(_server.fds).erase((_server.fds).begin() + i);
