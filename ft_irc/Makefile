@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+         #
+#    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/04/03 16:32:56 by thibnguy         ###   ########.fr        #
+#    Updated: 2024/04/06 18:24:32 by rchbouki         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,7 @@ INCLUDES	=	.
 SRCS		=	Ircserv.cpp \
 				Client.cpp \
 				IrcParser.cpp \
+				Channel.cpp \
 				main.cpp
 
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))

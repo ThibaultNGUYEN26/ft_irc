@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/05 21:40:17 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 18:56:32 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,16 +60,26 @@ void Ircserv::initServer() {
 		- POLLIN event => there is data to read
 		- revents = 0 => there are no previous events that have occured on this file descriptor
 	*/
-	struct pollfd listen_fd;
-	listen_fd.fd = _server.sfd;
-	listen_fd.events = POLLIN;
-	listen_fd.revents = 0;
+	pollfd listen_fd = {_server.sfd, POLLIN, 0};
 	(_server.fds).push_back(listen_fd);
 }
 
-bool validateClientPassword(int clientSocket, const std::string& _password) {
+bool	Ircserv::isValidNickname(const std::string& nickname) {
+	if (nickname.length() > 9) {
+		std::cout << RED "Nickname's length exceeds 9 characters. Change it before registering again." EOC << std::endl;	
+		return false;
+	}
+	if (_clients.find(nickname) != _clients.end()) {
+		std::cout << RED "Nickname already exists within the server's clients. Change it before registering again." EOC << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool Ircserv::validateClientCommands(int clientSocket, const std::string& _password) {
 	bool	gotPassword = false, gotUsername = false, gotNickname = false;
-	std::string nick;
+	std::string	receivedNickname;
+	std::string	receivedUsername;
 
 	while (!gotNickname || !gotUsername || !gotPassword)
 	{
@@ -77,12 +87,12 @@ bool validateClientPassword(int clientSocket, const std::string& _password) {
 
 		memset(buffer, 0, sizeof(buffer));
 		ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-		if (bytesRead <= 0) {
+		if (bytesRead <= 0) { 
 			std::cout << "Failed to receive data or connection closed." << std::endl;
 			return false; // Failed to read data
 		}
 		buffer[bytesRead] = '\0'; // Null-terminate the received string
-		// std::cout << "*" << buffer << "*" << std::endl;
+		std::cout << "*" << buffer << "*" << std::endl;
 
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
@@ -105,15 +115,15 @@ bool validateClientPassword(int clientSocket, const std::string& _password) {
 				gotPassword = true;
 			}
 			else if (cmd == "NICK") {
-				std::string	receivedNickname;
 				std::getline(iss, receivedNickname, '\r');
 				// std::cout << "--" << receivedNickname << "--" << std::endl;
-				nick = receivedNickname;
+				if (!isValidNickname(receivedNickname)) {
+					return false;
+				}
 				gotNickname = true;
 				// std::cout << "--" << cmd << "--" << std::endl;
 			}
 			else if (cmd == "USER") {
-				std::string	receivedUsername;
 				std::getline(iss, receivedUsername, ' ');
 				// std::cout << "--" << receivedUsername << "--" << std::endl;
 				gotUsername = true;
@@ -122,10 +132,21 @@ bool validateClientPassword(int clientSocket, const std::string& _password) {
 			std::getline(iss, cmd, '\n');
 		}
 	}
-	std::cout << GREEN "Client " << nick << " successfully connected." EOC << std::endl;
+	Client newClient(clientSocket, receivedUsername, receivedNickname);
+	_clients.insert(std::make_pair(receivedNickname, newClient));
+	std::cout << GREEN "Client : {" << newClient.getNickname() << ", " << newClient.getUsername() << ", " << newClient.getSocket() << "} successfully connected." EOC << std::endl;
 	return true;
 }
 
+void	Ircserv::eraseClient(int &clientSocket) {
+	for (std::map<std::string, Client>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		if ((it->second).getSocket() == clientSocket) {
+			std::cout << BLUE "Client : {" << (it->second).getNickname() << ", " << (it->second).getUsername() << ", " << (it->second).getSocket() << "} disconnected." EOC << std::endl;
+			_clients.erase(_clients.find(it->first));
+			break;
+		}
+	}
+}
 
 void Ircserv::runServer() {
 	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
@@ -136,7 +157,7 @@ void Ircserv::runServer() {
 			- -1 means no timeout and waits indefinetly for an event to occur on the fds in the pollfd structure
 			- return value : < 0 means failure, 0 means no events, > 0 means events occured
 		*/
-		int ret = poll((_server.fds).data(), (_server.fds).size(), -1); // -1 means no timeout
+		int ret = poll((_server.fds).data(), (_server.fds).size(), -1);
 		if (ret < 0) {
 			error("poll failure");
 			exit(EXIT_FAILURE);
@@ -155,13 +176,11 @@ void Ircserv::runServer() {
 						error("accept failure");
 						continue;
 					}
-					if (!validateClientPassword(clientSocket, _password)) {
-						close(clientSocket); // Close connection if password validation fails
-						continue; // Skip further processing for this client
+					if (!validateClientCommands(clientSocket, _password)) {
+						close(clientSocket);
+						continue;
 					}
-					pollfd newfd;
-					newfd.fd = clientSocket;
-					newfd.events = POLLIN;
+					pollfd newfd = {clientSocket, POLLIN, 0};
 					_server.fds.push_back(newfd);
 				} else {
 					// Existing client socket had an event that needs to be read
@@ -174,10 +193,10 @@ void Ircserv::runServer() {
 						std::string command(buffer);
 					} else {
 						// Connection closed by client or error reading
+						(_server.fds).erase((_server.fds).begin() + i);
+						eraseClient((_server.fds[i]).fd);
 						close((_server.fds[i]).fd);
-						(_server.fds).erase((_server.fds).begin() + i); // Remove from set
-						std::cout << BLUE "Client disconnected." EOC << std::endl;
-						--i; // Adjust index after removal
+						--i;
 					}
 				}
 			}

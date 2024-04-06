@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/04 15:34:21 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/06 18:39:16 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@
 #include <sstream>
 #include <string>
 #include <sstream>
-#include <map>
 #include <unistd.h>
 #include <poll.h>
 #include <vector>
@@ -41,13 +40,12 @@
 
 #define BACKLOG 10
 
-struct t_server {
+typedef struct t_server {
 	int sfd;
 	sockaddr_in	hints;
 	sockaddr_in	*res;
-	// Array of pollfd structures for monitoring file descriptors
 	std::vector<struct pollfd> fds;
-};
+} s_server;
 
 class Ircserv {
 
@@ -56,17 +54,16 @@ public:
 	Ircserv(std::string &port, std::string &password);
 	~Ircserv();
 	
-	void initServer();
-	void runServer();
+	void	initServer();
+	void	runServer();
+	void	eraseClient(int &clientSocket);
+
+	bool	isValidNickname(const std::string& nickname);
+	bool	validateClientCommands(int clientSocket, const std::string& _password);
 
 private:
 	int _port;
 	std::string _password;
-	struct t_server	 _server;
-	std::map<std::string, Client>	clients;
-
+	s_server	_server;
+	std::map<std::string, Client>	_clients;
 };
-
-void passCommand(std::string &_password, struct t_server &_server, int &clientSocket);
-void nickCommand(struct t_server &_server, int &clientSocket);	
-void handleRegistration(int sockfd);
