@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/06 22:07:11 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/08 16:54:39 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,24 +161,61 @@ void Ircserv::handleJoinCommand(int clientSocket, const std::string& channelName
 		// Since we can't directly emplace in C++98, we create the vector first
 		std::vector<int> clientSockets;
 		clientSockets.push_back(clientSocket);
-		_channels.insert(std::make_pair(channelName, clientSockets));
+		_channels[channelName] = clientSockets;
+		//_channels.insert(std::make_pair(channelName, clientSockets));
 	} else {
 		// Channel exists, add the client to the channel
 		it->second.push_back(clientSocket);
 	}
 
+	// Notify all clients in the channel about the new member
+	std::string nickname;
+	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			nickname = (it->second)->getNickname();
+			break;
+		}
+	}
+	
 	// Send JOIN message back to the client to confirm
-	std::string joinConfirm = "JOIN " + channelName + "\r\n";
+	std::string joinConfirm = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
 	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
 
-	// Notify all clients in the channel about the new member
-	std::string joinNotification = "A new user has joined " + channelName + "\r\n";
+	std::string joinMsg = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
 	std::vector<int>& members = _channels[channelName];
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
 		if (*memberIt != clientSocket) { // Don't send notification to the user who just joined
-			send(*memberIt, joinNotification.c_str(), joinNotification.size(), 0);
+			send(*memberIt, joinMsg.c_str(), joinMsg.size(), 0);
 		}
 	}
+}
+
+void Ircserv::broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message) {
+    // Find the channel in the map
+    std::map<std::string, std::vector<int> >::iterator channelIt = _channels.find(channelName);
+    if (channelIt == _channels.end()) {
+        return; // Channel not found, just return.
+    }
+    
+    std::string nickname;
+    // Iterate over clients to find the nickname of the sender.
+    for (std::map<std::string, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+        if (it->second->getSocket() == senderSocket) {
+            nickname = it->second->getNickname();
+            break;
+        }
+    }
+	
+    // Construct the message using the sender's nickname.
+    std::string fullMessage = ":" + nickname + "!~user@host PRIVMSG " + channelName + " :" + message + "\r\n";
+
+    // Broadcast the message to all channel members except the sender.
+    std::vector<int>& members = channelIt->second;
+    for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
+        if (*memberIt != senderSocket) { // Exclude the message sender
+            send(*memberIt, fullMessage.c_str(), fullMessage.length(), 0);
+        }
+    }
 }
 
 void Ircserv::runServer() {
@@ -232,8 +269,24 @@ void Ircserv::runServer() {
 						// Now check if the command is a JOIN command
 						if (command.find("JOIN") == 0) {
 							// Extract the channel name from the command
-							std::string channelName = command.substr(5); // Adjust based on actual command format
+							std::istringstream iss(command);
+							std::string channelName;
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, channelName, '\r');
 							handleJoinCommand(_server.fds[i].fd, channelName); // Handle the JOIN command
+						}
+
+						if (command.find("PRIVMSG") == 0) {
+							// Extract the target (channel or user) and the message
+							std::istringstream iss(command);
+							std::string	channelName;
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, channelName, ' ');
+							std::string	message;
+							std::getline(iss, message, ':');
+							std::getline(iss, message, '\r');
+							std::cout << "Message: " << message << std::endl;
+							broadcastToChannel(_server.fds[i].fd, channelName, message);
 						}
 
 						// Here, you would further process 'command' as needed by your server
