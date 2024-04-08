@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/08 15:56:23 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/08 18:31:43 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,16 +57,17 @@ public:
 	void	initServer();
 	void	runServer();
 	void	eraseClient(int &clientSocket);
-	void handleJoinCommand(int clientSocket, const std::string& channelName);
-	void broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message);
+	void	handleJoinCommand(int clientSocket, const std::string& channelName);
+	void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message);
+	void	sendDM(int senderSocket, const std::string& channelName, const std::string& message);
 
 	bool	isValidNickname(const std::string& nickname);
 	bool	validateClientCommands(int& clientSocket, const std::string& _password);
 
 private:
 	int _port;
-	std::string _password;
 	s_server	_server;
+	std::string _password;
 	std::map<std::string, Client *>	_clients;
 	std::map< std::string, std::vector<int> > _channels;
 };
