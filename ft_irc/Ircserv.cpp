@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/08 18:57:16 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/09 23:36:44 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,14 +97,27 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 			return false;
 		}
 		buffer[bytesRead] = '\0';
-
+		
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
 		std::string	cmd;
-
+		std::cout << buffer << std::endl;
 		while (std::getline(iss, cmd, ' ')) {
 			if (cmd == "CAP") {
-				std::getline(iss, cmd, '\r');
+				std::string	capParam;
+				std::getline(iss, capParam, ' ');
+				if (capParam == "LS") {
+					std::string	token;
+					std::getline(iss, token, '\r');
+					std::string ack = "CAP * " + capParam + " " + token + "\r\n";
+					std::cout << ack << std::endl;
+					send(clientSocket, ack.c_str(), ack.length(), 0);
+				}
+				else {
+					std::string welcome = "001 " + receivedNickname + " :\r\n";
+					send(clientSocket, welcome.c_str(), welcome.length(), 0);
+				}
+				break;
 			}
 			else if (cmd == "PASS") {
 				std::string	receivedPassword;
@@ -127,7 +140,6 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 				gotUsername = true;
 				std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
 				send(clientSocket, welcome.c_str(), welcome.length(), 0);
-				break;
 			}
 			std::getline(iss, cmd, '\n');
 		}
@@ -199,6 +211,7 @@ void	Ircserv::broadcastToChannel(int senderSocket, const std::string& channelNam
 			break;
 		}
 	}
+	std::cout << "NICKNAME : " << nickname << std::endl;
 	// Find the channel in the map
 	std::map<std::string, std::vector<int> >::iterator channelIt = _channels.find(channelName);
 	if (channelIt == _channels.end()) {
@@ -239,7 +252,6 @@ void	Ircserv::sendDM(int senderSocket, const std::string& target, const std::str
 		}
 	}
 	std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
-	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
 }
 
@@ -299,9 +311,7 @@ void Ircserv::runServer() {
 							std::getline(iss, channelName, '\r');
 							handleJoinCommand(_server.fds[i].fd, channelName); // Handle the JOIN command
 						}
-
-						if (command.find("PRIVMSG") == 0) {
-							// Extract the target (channel or user) and the message
+						else if (command.find("PRIVMSG") == 0) {
 							std::istringstream iss(command);
 							std::string	target;
 							std::getline(iss, target, ' ');
@@ -314,6 +324,15 @@ void Ircserv::runServer() {
 								broadcastToChannel(_server.fds[i].fd, target, message);
 							else
 								sendDM(_server.fds[i].fd, target, message);
+						}
+						else if (command.find("PING") == 0) {
+							std::istringstream iss(command);
+							std::string	token;
+							std::getline(iss, token, ' ');
+							std::getline(iss, token, ' ');
+							std::string fullMessage = "PONG " + token + "\r\n";
+							std::cout << fullMessage << std::endl;
+							send((_server.fds[i]).fd, fullMessage.c_str(), fullMessage.length(), 0);
 						}
 
 					} else {
