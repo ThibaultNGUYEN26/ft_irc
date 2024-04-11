@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/09 23:36:44 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/11 14:16:24 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,18 +69,6 @@ void	Ircserv::initServer() {
 	(_server.fds).push_back(listen_fd);
 }
 
-bool	Ircserv::isValidNickname(const std::string& nickname) {
-	if (nickname.length() > 9) {
-		std::cout << RED "Nickname's length exceeds 9 characters. Change it before registering again." EOC << std::endl;	
-		return false;
-	}
-	if (_clients.find(nickname) != _clients.end()) {
-		std::cout << RED "Nickname already exists within the server's clients. Change it before registering again." EOC << std::endl;
-		return false;
-	}
-	return true;
-}
-
 bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _password) {
 	bool	gotPassword = false, gotUsername = false, gotNickname = false;
 	std::string	receivedNickname;
@@ -130,7 +118,7 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 			}
 			else if (cmd == "NICK") {
 				std::getline(iss, receivedNickname, '\r');
-				if (!isValidNickname(receivedNickname)) {
+				if (!isValidNickname(receivedNickname, _clients)) {
 					return false;
 				}
 				gotNickname = true;
@@ -145,13 +133,8 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 		}
 	}
 	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
-
+	
 	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
-	/* // DISPLAY _clients
-	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++)
-	{
-		std::cout << "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "}" << std::endl;
-	} */
 	return true;
 }
 
@@ -164,95 +147,6 @@ void	Ircserv::eraseClient(int &clientSocket) {
 			break;
 		}
 	}
-}
-
-void	Ircserv::handleJoinCommand(int clientSocket, const std::string& channelName) {
-	// Check if the channel exists, create it if not
-	std::map<std::string, std::vector<int> >::iterator it = _channels.find(channelName);
-	if (it == _channels.end()) {
-		// Since we can't directly emplace in C++98, we create the vector first
-		std::vector<int> clientSockets;
-		clientSockets.push_back(clientSocket);
-		_channels[channelName] = clientSockets;
-		//_channels.insert(std::make_pair(channelName, clientSockets));
-	} else {
-		// Channel exists, add the client to the channel
-		it->second.push_back(clientSocket);
-	}
-
-	// Notify all clients in the channel about the new member
-	std::string nickname;
-	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
-		if ((it->second)->getSocket() == clientSocket) {
-			nickname = (it->second)->getNickname();
-			break;
-		}
-	}
-	
-	// Send JOIN message back to the client to confirm
-	std::string joinConfirm = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
-	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
-
-	std::string joinMsg = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
-	std::vector<int>& members = _channels[channelName];
-	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
-		if (*memberIt != clientSocket) { // Don't send notification to the user who just joined
-			send(*memberIt, joinMsg.c_str(), joinMsg.size(), 0);
-		}
-	}
-}
-
-void	Ircserv::broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message) {
-	// Iterate over clients to find the nickname of the sender.
-	std::string nickname;
-	for (std::map<std::string, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		if (it->second->getSocket() == senderSocket) {
-			nickname = it->second->getNickname();
-			break;
-		}
-	}
-	std::cout << "NICKNAME : " << nickname << std::endl;
-	// Find the channel in the map
-	std::map<std::string, std::vector<int> >::iterator channelIt = _channels.find(channelName);
-	if (channelIt == _channels.end()) {
-		std::string fullMessage = nickname + " " + channelName + " :" + "No such channel" + "\r\n";
-		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
-		return ;
-	}
-	// Construct the message using the sender's nickname.
-	std::string fullMessage = ":" + nickname + "!~user@host PRIVMSG " + channelName + " :" + message + "\r\n";
-	// Broadcast the message to all channel members except the sender.
-	std::vector<int>& members = channelIt->second;
-	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
-		if (*memberIt != senderSocket) { // Exclude the message sender
-			send(*memberIt, fullMessage.c_str(), fullMessage.length(), 0);
-		}
-	}
-}
-
-void	Ircserv::sendDM(int senderSocket, const std::string& target, const std::string& message) {
-	// Check if the target exists
- 	std::map<std::string, Client*>::iterator it = _clients.find(target);
-	int	targetSocket;
-	if (it == _clients.end()) {
-		std::string fullMessage = target + " : There was no such channel\r\n";
-		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
-		return ;
-	}
-	else
-	{
-		targetSocket = _clients[target]->getSocket();
-	}
-	// retrieve nickname of the sender
-	std::string nickname;
-	for (std::map<std::string, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-		if (it->second->getSocket() == senderSocket) {
-			nickname = it->second->getNickname();
-			break;
-		}
-	}
-	std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
-	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
 }
 
 void Ircserv::runServer() {
@@ -297,7 +191,7 @@ void Ircserv::runServer() {
 					ssize_t bytesRead = read((_server.fds[i]).fd, buffer, sizeof(buffer) - 1);
 
 					if (bytesRead > 0) {
-						buffer[bytesRead] = '\0'; // Ensure null-terminated
+						buffer[bytesRead] = '\0';
 						std::string command(buffer);
 
 						// Print the received command to the console
@@ -309,7 +203,7 @@ void Ircserv::runServer() {
 							std::string channelName;
 							std::getline(iss, channelName, ' ');
 							std::getline(iss, channelName, '\r');
-							handleJoinCommand(_server.fds[i].fd, channelName); // Handle the JOIN command
+							handleJoinCommand(_server.fds[i].fd, channelName, _clients, _channels);
 						}
 						else if (command.find("PRIVMSG") == 0) {
 							std::istringstream iss(command);
@@ -321,9 +215,9 @@ void Ircserv::runServer() {
 							std::getline(iss, message, '\r');
 							std::cout << "Message: " << message << std::endl;
 							if (target[0] == '#')
-								broadcastToChannel(_server.fds[i].fd, target, message);
+								broadcastToChannel(_server.fds[i].fd, target, message, _clients, _channels);
 							else
-								sendDM(_server.fds[i].fd, target, message);
+								sendDM(_server.fds[i].fd, target, message, _clients);
 						}
 						else if (command.find("PING") == 0) {
 							std::istringstream iss(command);
@@ -334,7 +228,6 @@ void Ircserv::runServer() {
 							std::cout << fullMessage << std::endl;
 							send((_server.fds[i]).fd, fullMessage.c_str(), fullMessage.length(), 0);
 						}
-
 					} else {
 						// Connection closed by client or error reading
 						(_server.fds).erase((_server.fds).begin() + i);

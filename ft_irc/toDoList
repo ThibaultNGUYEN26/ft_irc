@@ -4,3 +4,9 @@ limit password length
 impose special character
 impose min length
 etc
+
+COMMANDS
+	JOIN channel1
+		- When a client joins a channel, he receives all relevant parts about that channel : who joined, the mode, KICK
+		- they receive all PRIVMSG and NOTICE messages sent to the channel
+		- they receive all QUIT messages from other clients who joined the same channel

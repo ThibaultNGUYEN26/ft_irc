@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
+#    By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/04/06 21:16:32 by rchbouki         ###   ########.fr        #
+#    Updated: 2024/04/11 13:29:08 by rchbouki         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ INCLUDES	=	.
 
 SRCS		=	Ircserv.cpp \
 				Client.cpp \
-				IrcParser.cpp \
+				IrcUtils.cpp \
 				Channel.cpp \
 				main.cpp
 
