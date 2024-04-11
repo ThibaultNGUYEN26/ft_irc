@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/11 14:11:22 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/11 16:36:20 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ void	sendDM(int senderSocket, const std::string& target, const std::string& mess
  	std::map<std::string, Client*>::iterator it = clients.find(target);
 	int	targetSocket;
 	if (it == clients.end()) {
-		std::string fullMessage = target + " : There was no such channel\r\n";
+		std::string fullMessage = target + " : There was no such nickname\r\n";
 		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
 		return ;
 	}
@@ -103,5 +103,6 @@ void	sendDM(int senderSocket, const std::string& target, const std::string& mess
 		}
 	}
 	std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
+	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
 }
