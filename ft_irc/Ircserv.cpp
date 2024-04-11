@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/11 14:16:24 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/11 22:42:17 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,6 +198,14 @@ void Ircserv::runServer() {
 						std::cout << "Received command from client: " << buffer << std::endl;
 						
 						if (command.find("JOIN") == 0) {
+							// Extract the channel name from the command
+							std::istringstream iss(command);
+							std::string channelName;
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, channelName, '\r');
+							handleJoinCommand(_server.fds[i].fd, channelName, _clients, _channels);
+						}
+						if (command.find("PART") == 0) {
 							// Extract the channel name from the command
 							std::istringstream iss(command);
 							std::string channelName;
