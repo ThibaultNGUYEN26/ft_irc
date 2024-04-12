@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/11 22:44:06 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/12 16:18:27 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,57 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 		}
 	}
 }
+
+void handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels) {
+    // Check if the channel exists
+    channelMap::iterator channelIt = channels.find(channelName);
+    if (channelIt == channels.end()) {
+        std::cerr << "No such channel: " << channelName << std::endl;
+        return; // No such channel
+    }
+
+    // Find the user to kick based on their nickname
+    int userSocket = -1;
+    for (clientMap::iterator it = clients.begin(); it != clients.end(); ++it) {
+        if (it->second->getNickname() == userToKick) {
+            userSocket = it->second->getSocket();
+            break;
+        }
+    }
+
+    if (userSocket == -1) {
+        std::cerr << "User not found: " << userToKick << std::endl;
+        return; // User not found in server
+    }
+
+    // Check if the user is in the channel
+    std::vector<int>::iterator pos = std::find(channelIt->second.begin(), channelIt->second.end(), userSocket);
+    if (pos == channelIt->second.end()) {
+        std::cerr << "User not found in channel: " << userToKick << std::endl;
+        return; // User not in channel
+    }
+
+    // Remove the user from the channel
+    channelIt->second.erase(pos);
+
+
+	std::string nickname;
+	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			nickname = (it->second)->getNickname();
+			break;
+		}
+	}
+    // Notify the kicked user and all channel members
+    std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
+
+    // Send message to all clients in the channel and the kicked user
+    for (size_t i = 0; i < channelIt->second.size(); ++i) {
+        send(channelIt->second[i], kickMessage.c_str(), kickMessage.length(), 0);
+    }
+    send(userSocket, kickMessage.c_str(), kickMessage.length(), 0);  // Ensure the kicked user also receives the message
+}
+
 
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels) {
 	// Iterate over clients to find the nickname of the sender.

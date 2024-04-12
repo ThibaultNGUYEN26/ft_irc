@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/11 22:42:17 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/12 16:25:52 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,13 +205,37 @@ void Ircserv::runServer() {
 							std::getline(iss, channelName, '\r');
 							handleJoinCommand(_server.fds[i].fd, channelName, _clients, _channels);
 						}
-						if (command.find("PART") == 0) {
+						else if (command.find("PART") == 0) {
 							// Extract the channel name from the command
 							std::istringstream iss(command);
 							std::string channelName;
 							std::getline(iss, channelName, ' ');
 							std::getline(iss, channelName, '\r');
-							handleJoinCommand(_server.fds[i].fd, channelName, _clients, _channels);
+							handleLeaveCommand(_server.fds[i].fd, channelName, _clients, _channels);
+						}
+						else if (command.find("KICK") == 0) {
+							// Extract the channel name from the command
+							std::istringstream iss(command);
+							std::string channelName, userToKick, reason;
+
+							// Get channel name
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, channelName, ' ');  // Extract up to the first space
+							// Get user to kick
+							std::getline(iss, userToKick, ' ');  // Extract up to the next space
+							// Get the reason (might start with ':')
+							std::getline(iss, reason, '\r');
+
+							if (!reason.empty() && reason[0] == ':') {
+								reason = reason.substr(1); // Remove the ':' at the start of the reason
+							}
+
+							// Trim any leading spaces from the reason
+							size_t startPos = reason.find_first_not_of(" ");
+							if (startPos != std::string::npos) {
+								reason = reason.substr(startPos);
+							}
+							handleKickCommand(_server.fds[i].fd, channelName, userToKick, reason, _clients, _channels);
 						}
 						else if (command.find("PRIVMSG") == 0) {
 							std::istringstream iss(command);
