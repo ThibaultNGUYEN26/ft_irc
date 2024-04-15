@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/12 16:05:12 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/15 23:34:49 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "Client.hpp"
+#include "Channel.hpp"
 #include <iostream>
 #include <cstdlib>
 #include <sstream>
@@ -77,6 +78,8 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels);
 
 void	handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels);
+
+void	handleTopicCommand(int clientSocket, const std::string& channelName, const std::string& newTopic, clientMap& clients, channelMap& channels);
 
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels);
 

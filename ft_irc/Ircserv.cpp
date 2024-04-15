@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/12 16:25:52 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/15 23:10:08 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -220,14 +220,14 @@ void Ircserv::runServer() {
 
 							// Get channel name
 							std::getline(iss, channelName, ' ');
-							std::getline(iss, channelName, ' ');  // Extract up to the first space
+							std::getline(iss, channelName, ' ');
 							// Get user to kick
-							std::getline(iss, userToKick, ' ');  // Extract up to the next space
-							// Get the reason (might start with ':')
+							std::getline(iss, userToKick, ' ');
+							// Get the reason
 							std::getline(iss, reason, '\r');
 
 							if (!reason.empty() && reason[0] == ':') {
-								reason = reason.substr(1); // Remove the ':' at the start of the reason
+								reason = reason.substr(1);
 							}
 
 							// Trim any leading spaces from the reason
