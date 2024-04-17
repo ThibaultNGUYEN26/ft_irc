@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/15 23:10:08 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 11:47:21 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ Ircserv::Ircserv(std::string &port, std::string &password) : _password(password)
 }
 
 Ircserv::~Ircserv() {
-	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+	for (clientMap::iterator it = _clients.begin(); it != _clients.end(); it++) {
 		delete(it->second);
 		_clients.erase(_clients.find(it->first));
 	}
@@ -139,7 +139,7 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 }
 
 void	Ircserv::eraseClient(int &clientSocket) {
-	for (std::map<std::string, Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+	for (clientMap::iterator it = _clients.begin(); it != _clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
 			std::cout << BLUE "Client : {" << (it->second)->getNickname() << ", " << (it->second)->getUsername() << ", " << (it->second)->getSocket() << "} disconnected." EOC << std::endl;
 			delete(it->second);
@@ -214,21 +214,13 @@ void Ircserv::runServer() {
 							handleLeaveCommand(_server.fds[i].fd, channelName, _clients, _channels);
 						}
 						else if (command.find("KICK") == 0) {
-							// Extract the channel name from the command
 							std::istringstream iss(command);
 							std::string channelName, userToKick, reason;
-
-							// Get channel name
 							std::getline(iss, channelName, ' ');
 							std::getline(iss, channelName, ' ');
-							// Get user to kick
 							std::getline(iss, userToKick, ' ');
-							// Get the reason
+							std::getline(iss, reason, ':');
 							std::getline(iss, reason, '\r');
-
-							if (!reason.empty() && reason[0] == ':') {
-								reason = reason.substr(1);
-							}
 
 							// Trim any leading spaces from the reason
 							size_t startPos = reason.find_first_not_of(" ");
@@ -239,10 +231,9 @@ void Ircserv::runServer() {
 						}
 						else if (command.find("PRIVMSG") == 0) {
 							std::istringstream iss(command);
-							std::string	target;
+							std::string	target, message;
 							std::getline(iss, target, ' ');
 							std::getline(iss, target, ' ');
-							std::string	message;
 							std::getline(iss, message, ':');
 							std::getline(iss, message, '\r');
 							std::cout << "Message: " << message << std::endl;
@@ -250,6 +241,17 @@ void Ircserv::runServer() {
 								broadcastToChannel(_server.fds[i].fd, target, message, _clients, _channels);
 							else
 								sendDM(_server.fds[i].fd, target, message, _clients);
+						}
+						else if (command.find("TOPIC") == 0) {
+							std::istringstream iss(command);
+							std::string channelName, topic;
+
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, topic, ':');
+							std::getline(iss, topic, '\r');
+							std::cout << "Topic : " << topic << " in Channel : " << channelName << std::endl;
+							handleTopicCommand(_server.fds[i].fd, channelName, topic, _clients, _channels);
 						}
 						else if (command.find("PING") == 0) {
 							std::istringstream iss(command);

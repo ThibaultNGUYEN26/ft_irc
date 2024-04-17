@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/15 23:34:49 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 11:58:42 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,14 @@ public:
 
 	Ircserv(std::string &port, std::string &password);
 	~Ircserv();
-	
+
 	void	initServer();
 	void	runServer();
 	void	eraseClient(int &clientSocket);
 	bool	validateClientCommands(int& clientSocket, const std::string& _password);
 
 private:
+
 	int			_port;
 	s_server	_server;
 	std::string _password;
