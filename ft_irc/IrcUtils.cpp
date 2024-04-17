@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:26:10 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:34:22 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 		}
 	}
 }
-/* 
+
 void handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
 	channelMap::iterator channelIt = channels.find(channelName);
@@ -132,14 +132,15 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	}
 
 	// Check if the user is in the channel
-	std::vector<int>::iterator pos = std::find(channelIt->second.begin(), channelIt->second.end(), userSocket);
-	if (pos == channelIt->second.end()) {
+	std::vector<int>& members = (channelIt->second)->getClients();
+	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
+	if (pos == members.end()) {
 		std::cerr << "User not found in channel: " << userToKick << std::endl;
 		return;
 	}
 
 	// Remove the user from the channel
-	channelIt->second.erase(pos);
+	members.erase(pos);
 
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
@@ -152,12 +153,12 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
 
 	// Send message to all clients in the channel and the kicked user
-	for (size_t i = 0; i < channelIt->second.size(); ++i) {
-		send(channelIt->second[i], kickMessage.c_str(), kickMessage.length(), 0);
+	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
+		send(*memberIt, kickMessage.c_str(), kickMessage.length(), 0);
 	}
-	send(userSocket, kickMessage.c_str(), kickMessage.length(), 0);  // Ensure the kicked user also receives the message
+	send(userSocket, kickMessage.c_str(), kickMessage.length(), 0);
 }
-
+/* 
 void handleTopicCommand(int clientSocket, const std::string& channelName, const std::string& newTopic, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
 	channelMap::iterator channelIt = channels.find(channelName);
