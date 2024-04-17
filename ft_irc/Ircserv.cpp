@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:33:53 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:37:00 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,7 +229,7 @@ void Ircserv::runServer() {
 							}
 							handleKickCommand(_server.fds[i].fd, channelName, userToKick, reason, _clients, _channels);
 						}
-						/* else if (command.find("PRIVMSG") == 0) {
+						else if (command.find("PRIVMSG") == 0) {
 							std::istringstream iss(command);
 							std::string	target, message;
 							std::getline(iss, target, ' ');
@@ -242,6 +242,7 @@ void Ircserv::runServer() {
 							else
 								sendDM(_server.fds[i].fd, target, message, _clients);
 						}
+						/*
 						else if (command.find("TOPIC") == 0) {
 							std::istringstream iss(command);
 							std::string channelName, topic;

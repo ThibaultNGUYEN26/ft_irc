@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:34:22 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:37:42 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,7 +205,7 @@ void handleTopicCommand(int clientSocket, const std::string& channelName, const 
 		}
 	}
 }
-
+*/
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels) {
 	// Iterate over clients to find the nickname of the sender.
 	std::string nickname;
@@ -216,7 +216,7 @@ void	broadcastToChannel(int senderSocket, const std::string& channelName, const 
 		}
 	}
 	// Find the channel in the map
-	std::map<std::string, std::vector<int> >::iterator channelIt = channels.find(channelName);
+	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
 		std::string fullMessage = nickname + " " + channelName + " :" + "No such channel" + "\r\n";
 		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
@@ -226,7 +226,7 @@ void	broadcastToChannel(int senderSocket, const std::string& channelName, const 
 	std::string fullMessage = ":" + nickname + "!~user@host PRIVMSG " + channelName + " :" + message + "\r\n";
 
 	// Broadcast the message to all channel members except the sender.
-	std::vector<int>& members = channelIt->second;
+	std::vector<int>& members = (channelIt->second)->getClients();
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
 		if (*memberIt != senderSocket) {
 			send(*memberIt, fullMessage.c_str(), fullMessage.length(), 0);
@@ -258,4 +258,3 @@ void	sendDM(int senderSocket, const std::string& target, const std::string& mess
 	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
 }
- */
