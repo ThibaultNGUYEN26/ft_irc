@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:37:42 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:45:52 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,54 +158,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	}
 	send(userSocket, kickMessage.c_str(), kickMessage.length(), 0);
 }
-/* 
-void handleTopicCommand(int clientSocket, const std::string& channelName, const std::string& newTopic, clientMap& clients, channelMap& channels) {
-	// Check if the channel exists
-	channelMap::iterator channelIt = channels.find(channelName);
-	if (channelIt == channels.end()) {
-		std::cerr << "No such channel: " << channelName << std::endl;
-		return;
-	}
-	// Check if a new topic is provided
-	if (!newTopic.empty()) {
-		// Check if the client sending the command is in the channel
-		std::vector<int>& members = channelIt->second;
-		bool clientInChannel = false;
-		for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
-			if (*it == clientSocket) {
-				clientInChannel = true;
-				break;
-			}
-		}
-		if (!clientInChannel) {
-			std::cerr << "Client not in channel: " << channelName << std::endl;
-			return;
-		}
-		std::string nickname;
-		for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-			if ((it->second)->getSocket() == clientSocket) {
-				nickname = (it->second)->getNickname();
-				break;
-			}
-		}
-		std::string topicMessage = ":" + nickname + "!~user@host TOPIC " + channelName + " :" + newTopic + "\r\n";
-		for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
-			send(*it, topicMessage.c_str(), topicMessage.length(), 0);
-		}
-		// (*channelIt).setTopic(newTopic);
-	} else {
-		// If no new topic is provided, send the current topic back to the client
-		const std::string& currentTopic = "Example topic"; // Modify this line to retrieve the actual topic from your data structure
-		if (currentTopic.empty()) {
-			std::string noTopicMessage = "There is no topic set for " + channelName + "\r\n";
-			send(clientSocket, noTopicMessage.c_str(), noTopicMessage.length(), 0);
-		} else {
-			std::string currentTopicMessage = "Current topic for " + channelName + " is: " + currentTopic + "\r\n";
-			send(clientSocket, currentTopicMessage.c_str(), currentTopicMessage.length(), 0);
-		}
-	}
-}
-*/
+
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels) {
 	// Iterate over clients to find the nickname of the sender.
 	std::string nickname;
@@ -257,4 +210,50 @@ void	sendDM(int senderSocket, const std::string& target, const std::string& mess
 	std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
 	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
+}
+
+void handleTopicCommand(int clientSocket, const std::string& channelName, const std::string& newTopic, clientMap& clients, channelMap& channels) {
+	// Check if the channel exists
+	channelMap::iterator channelIt = channels.find(channelName);
+	if (channelIt == channels.end()) {
+		std::cerr << "No such channel: " << channelName << std::endl;
+		return;
+	}
+	// Check if a new topic is provided
+	if (!newTopic.empty()) {
+		// Check if the client sending the command is in the channel
+		bool				clientInChannel = false;
+		std::vector<int>&	members = (channelIt->second)->getClients();
+		for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
+			if (*it == clientSocket) {
+				clientInChannel = true;
+				break;
+			}
+		}
+		if (!clientInChannel) {
+			std::cerr << "Client not in channel: " << channelName << std::endl;
+			return;
+		}
+		std::string nickname;
+		for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
+			if ((it->second)->getSocket() == clientSocket) {
+				nickname = (it->second)->getNickname();
+				break;
+			}
+		}
+		std::string topicMessage = ":" + nickname + "!~user@host TOPIC " + channelName + " :" + newTopic + "\r\n";
+		for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
+			send(*it, topicMessage.c_str(), topicMessage.length(), 0);
+		}
+		(channelIt->second)->setTopic(newTopic);
+	} else {
+		// If no new topic is provided, send the current topic back to the client
+		if ((channelIt->second)->getTopic().empty()) {
+			std::string noTopicMessage = "There is no topic set for " + channelName + "\r\n";
+			send(clientSocket, noTopicMessage.c_str(), noTopicMessage.length(), 0);
+		} else {
+			std::string currentTopicMessage = "Current topic for " + channelName + " is: " + (channelIt->second)->getTopic() + "\r\n";
+			send(clientSocket, currentTopicMessage.c_str(), currentTopicMessage.length(), 0);
+		}
+	}
 }
