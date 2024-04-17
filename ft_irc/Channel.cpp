@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 17:57:05 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:06:58 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ const	std::string& Channel::getTopic() const {
 	return _topic;
 }
 
-const std::vector<int>&	Channel::getClients() const {
+std::vector<int>&	Channel::getClients() {
 	return _clients;
 }
 

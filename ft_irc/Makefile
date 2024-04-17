@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: rchbouki <rchbouki@student.42.fr>          +#+  +:+       +#+         #
+#    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/04/11 13:29:08 by rchbouki         ###   ########.fr        #
+#    Updated: 2024/04/17 19:17:27 by rchbouki         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ SRCS		=	Ircserv.cpp \
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))
 
 CC			=	c++ -std=c++98
-CFLAGS		=	-Wall -Wextra -Werror -g #-fsanitize=address -fsanitize=undefined -pedantic
+CFLAGS		=	-Wall -Wextra -Werror -g -fsanitize=address -fsanitize=undefined -pedantic
 CINCLUDES	=	-I ${INCLUDES}
 
 BLACK		=	"\033[1;30m"

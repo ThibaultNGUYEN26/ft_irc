@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 17:58:19 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 19:26:10 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,12 +60,14 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
 	int	test = 0;
+	std::vector<int> members;
 	channelMap::iterator it = channels.find(channelName);
+	
 	if (it != channels.end()) {
 		// Find the client's socket in the channel members list and remove it
-		std::vector<int>& members = it->second;
+		members = (it->second)->getClients();
 		std::vector<int>::iterator memberIt = members.begin();
-		int	len = (it->second).size();
+		int	len = ((it->second)->getClients()).size();
 		while (memberIt != members.end()) {
 			if (*memberIt == clientSocket) {
 				memberIt = members.erase(memberIt);
@@ -98,14 +100,15 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 	send(clientSocket, leaveConfirm.c_str(), leaveConfirm.size(), 0);
 
 	// Notify all clients in the channel about the member leaving
-	std::vector<int>& members = channels[channelName];
-	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
-		if (*memberIt != clientSocket) {
-			send(*memberIt, leaveConfirm.c_str(), leaveConfirm.size(), 0);
+	if (!members.empty()) {
+		for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
+			if (*memberIt != clientSocket) {
+				send(*memberIt, leaveConfirm.c_str(), leaveConfirm.size(), 0);
+			}
 		}
 	}
 }
-
+/* 
 void handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
 	channelMap::iterator channelIt = channels.find(channelName);
@@ -254,3 +257,4 @@ void	sendDM(int senderSocket, const std::string& target, const std::string& mess
 	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
 }
+ */
