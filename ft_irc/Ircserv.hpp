@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/17 11:58:42 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 17:39:33 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ typedef struct t_server {
 } s_server;
 
 typedef std::map<std::string, Client *> clientMap;
-typedef std::map< std::string, std::vector<int> > channelMap;
+typedef std::map<std::string, Channel *> channelMap;
 
 class Ircserv {
 

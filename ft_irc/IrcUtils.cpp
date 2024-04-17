@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 11:59:15 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 17:58:19 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,14 +26,16 @@ bool	isValidNickname(const std::string& nickname, clientMap& clients) {
 
 void	handleJoinCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists, create it if not
-	std::map<std::string, std::vector<int> >::iterator it = channels.find(channelName);
+
+	channelMap::iterator	it = channels.find(channelName);
 	if (it == channels.end()) {
-		std::vector<int> clientSockets;
-		clientSockets.push_back(clientSocket);
-		channels[channelName] = clientSockets;
-	} else {
-		it->second.push_back(clientSocket);
+		channels[channelName] = new Channel(channelName);
+		(channels[channelName])->addClient(clientSocket);
 	}
+	else {
+		(it->second)->addClient(clientSocket);
+	}
+	
 	// Notify all clients in the channel about the new member
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
@@ -46,7 +48,8 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 	std::string joinConfirm = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
 	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
 
-	std::vector<int>& members = channels[channelName];
+	// Inform the other clients
+	std::vector<int>& members = (channels[channelName])->getClients();
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
 		if (*memberIt != clientSocket) {
 			send(*memberIt, joinConfirm.c_str(), joinConfirm.size(), 0);
@@ -172,7 +175,7 @@ void handleTopicCommand(int clientSocket, const std::string& channelName, const 
 		}
 		if (!clientInChannel) {
 			std::cerr << "Client not in channel: " << channelName << std::endl;
-			return; // Client not in channel
+			return;
 		}
 		std::string nickname;
 		for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {

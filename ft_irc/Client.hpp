@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:01 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 11:56:49 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 17:38:06 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,17 +29,16 @@ public:
 
 	void	setUsername(std::string &username);
 	void	setNickname(std::string &nickname);
-	const std::string &getUsername() const;
-	const std::string &getNickname() const;
-	const int	&getSocket() const;
-
-	void	addChannel(Channel &newChannel);
+	const std::string	&getUsername() const;
+	const std::string	&getNickname() const;
+	const int			&getSocket() const;
+	void		addChannel(Channel *newChannel, const std::string& channelName);
 
 private:
 
 	int			_socketClient;
 	std::string	_username;
 	std::string	_nickname;
-	std::map<std::string, Channel>	_channels;
+	std::map<std::string, Channel *>	_channels;
 
 };

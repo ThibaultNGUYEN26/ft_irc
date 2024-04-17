@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:05 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 11:17:28 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/17 17:38:01 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,4 +36,8 @@ const std::string &Client::getNickname() const {
 
 const int	&Client::getSocket() const {
 	return _socketClient;
+}
+
+void	Client::addChannel(Channel *newChannel, const std::string& channelName) {
+	_channels[channelName] = newChannel;
 }
