@@ -3,14 +3,96 @@
 /*                                                        :::      ::::::::   */
 /*   IrcUtils.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:45:52 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 16:08:10 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Ircserv.hpp"
+
+int getUserSocket(const std::string& nickname, clientMap& clients) {
+	for (clientMap::iterator it = clients.begin(); it != clients.end(); ++it) {
+		if (it->second->getNickname() == nickname) {
+			return it->second->getSocket();
+		}
+	}
+	return -1;
+}
+
+// Modify or check channel modes
+void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName, const std::string& modeSequence, const std::string& parameter, clientMap& clients, channelMap& channels) {
+	channelMap::iterator channelIt = channels.find(channelName);
+	if (channelIt == channels.end()) {
+		std::cerr << "No such channel: " << channelName << std::endl;
+		return;
+	}
+
+	Channel* channel = channelIt->second;
+	std::vector<int>& members = (channelIt->second)->getClients();
+	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), clientSocket);
+	if (pos == members.end()) {
+		std::cerr << "User not found in channel: " << std::endl;
+		return;
+	}
+
+	// Parse mode sequence
+	int targetSocket = 0;
+	bool addMode = true;
+	for (size_t i = 0; i < modeSequence.size(); ++i) {
+		char mode = modeSequence[i];
+		
+		if (mode == '+') {
+			addMode = true;
+		} else if (mode == '-') {
+			addMode = false;
+		} else {
+			switch (mode) {
+				case 'i':  // Invite-only mode
+					channel->setInviteOnly(addMode);
+					break;
+				case 't':  // Topic control mode
+					channel->setTopicControl(addMode);
+					break;
+				case 'k':  // Channel key (password)
+					if (addMode) {
+						channel->setKey(parameter);
+					} else {
+						channel->removeKey();
+					}
+					break;
+				case 'o':  // Operator privilege
+					targetSocket = getUserSocket(parameter, clients);
+					if (targetSocket != -1) {
+						channel->setOperator(clientSocket, targetSocket, addMode, clients);
+					}
+					break;
+				case 'l':  // User limit
+					if (addMode) {
+						int limit = atoi(parameter.c_str());
+						channel->setUserLimit(limit);
+					} else {
+						channel->removeUserLimit();
+					}
+					break;
+				default:
+					std::cerr << "Unknown mode: " << mode << std::endl;
+			}
+		}
+	}
+
+	std::string nickname;
+	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			nickname = (it->second)->getNickname();
+			break;
+		}
+	}
+	// Broadcast mode change to all channel members
+	std::string modeChangeMessage = ":" + nickname + " MODE " + channelName + " " + modeSequence + " " + parameter + "\r\n";
+	broadcastToChannel(clientSocket, channelName, modeChangeMessage, clients, channels);
+}
 
 bool	isValidNickname(const std::string& nickname, clientMap& clients) {
 	if (nickname.length() > 9) {
@@ -117,6 +199,17 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		return;
 	}
 
+	std::string nickname;
+	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			if ((it->second)->getOperator() == false) {
+				return ;
+			}
+			nickname = (it->second)->getNickname();
+			break;
+		}
+	}
+	
 	// Find the user to kick based on their nickname
 	int userSocket = -1;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); ++it) {
@@ -142,13 +235,6 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	// Remove the user from the channel
 	members.erase(pos);
 
-	std::string nickname;
-	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-		if ((it->second)->getSocket() == clientSocket) {
-			nickname = (it->second)->getNickname();
-			break;
-		}
-	}
 	// Notify the kicked user and all channel members
 	std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
 

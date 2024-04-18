@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:49:07 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:07:02 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 16:09:44 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,12 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include "Client.hpp"
+
+class Client;
+
+typedef std::map<std::string, Client *> clientMap;
 
 class Channel {
 
@@ -28,10 +34,24 @@ public:
 
 	void	setTopic(const std::string& topic);
 	void	addClient(const int& clientSocket);
+
+	void	setOperator(int clientSocket, int targetSocket, bool status, clientMap clients);
+	void	setInviteOnly(bool status);
+	void	setTopicControl(bool status);
+	void	setKey(const std::string& newKey);
+	void	removeKey();
+	void	setUserLimit(int limit);
+	void	removeUserLimit();
+
 private:
 
 	std::string			_channelName;
 	std::vector<int>	_clients;
 	std::string 		_topic;
+
+	bool				_inviteOnly;
+	bool				_topicControl;
+	std::string			_key;
+	int					_userLimit;
 
 };

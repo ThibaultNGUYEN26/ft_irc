@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 16:32:02 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 16:35:58 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,6 +267,29 @@ void Ircserv::runServer() {
 							eraseClient((_server.fds[i]).fd);
 							close((_server.fds[i]).fd);
 							--i;
+						}
+						else if (command.find("MODE") == 0) {
+							std::istringstream iss(command);
+							std::string channelName, modeCommand, param;
+							std::getline(iss, channelName, ' ');
+							std::getline(iss, channelName, ' ');
+							if (command.length() - 6 - channelName.length() != 4) {
+								std::getline(iss, modeCommand, ' ');
+								std::getline(iss, param, '\r');
+							} else {
+								std::getline(iss, modeCommand, '\r');
+							}
+
+							size_t startModePos = modeCommand.find_first_not_of(" ");
+							size_t startParamPos = param.find_first_not_of(" ");
+							if (startModePos != std::string::npos) {
+								modeCommand = modeCommand.substr(startModePos);
+							}
+							if (startParamPos != std::string::npos) {
+								param = param.substr(startParamPos);
+							}
+							std::cout << "Channel: " << channelName << " Mode: " << modeCommand << " Param: " << param << std::endl;
+							handleModeCommand(_server.fds[i].fd, channelName, modeCommand, param, _clients, _channels);
 						}
 					} else {
 						// Connection closed by client or error reading

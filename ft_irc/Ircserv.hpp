@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/17 17:39:33 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 13:14:15 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ public:
 	void	runServer();
 	void	eraseClient(int &clientSocket);
 	bool	validateClientCommands(int& clientSocket, const std::string& _password);
+	void	handleModeCommand(int clientSocket, const std::string& channelName, const std::string& modeSequence, const std::string& parameter, clientMap& clients, channelMap& channels);
 
 private:
 
@@ -74,6 +75,7 @@ private:
 };
 
 bool	isValidNickname(const std::string& nickname, clientMap& clients);
+
 
 void	handleJoinCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels);
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels);
