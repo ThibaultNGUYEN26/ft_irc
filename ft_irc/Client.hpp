@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:01 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 17:38:06 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 16:12:15 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 
 #include "Channel.hpp"
 
+class Channel;
+
 class Client {
 
 public:
@@ -32,6 +34,8 @@ public:
 	const std::string	&getUsername() const;
 	const std::string	&getNickname() const;
 	const int			&getSocket() const;
+	const bool			&getOperator() const;
+	void				setOperator(bool status);
 	void		addChannel(Channel *newChannel, const std::string& channelName);
 
 private:
@@ -39,6 +43,6 @@ private:
 	int			_socketClient;
 	std::string	_username;
 	std::string	_nickname;
+	bool		_isOperator;
 	std::map<std::string, Channel *>	_channels;
-
 };
