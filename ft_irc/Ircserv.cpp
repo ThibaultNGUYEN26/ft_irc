@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/17 19:46:21 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 16:32:02 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,11 +70,11 @@ void	Ircserv::initServer() {
 }
 
 bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _password) {
-	bool	gotPassword = false, gotUsername = false, gotNickname = false;
+	bool		gotEnd = false;
 	std::string	receivedNickname;
 	std::string	receivedUsername;
 
-	while (!gotNickname || !gotUsername || !gotPassword)
+	while (!gotEnd)
 	{
 		char buffer[1024];
 
@@ -93,19 +93,25 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 		while (std::getline(iss, cmd, ' ')) {
 			if (cmd == "CAP") {
 				std::string	capParam;
-				std::getline(iss, capParam, ' ');
-				if (capParam == "LS") {
-					std::string	token;
-					std::getline(iss, token, '\r');
-					std::string ack = "CAP * " + capParam + " " + token + "\r\n";
-					std::cout << ack << std::endl;
-					send(clientSocket, ack.c_str(), ack.length(), 0);
+				std::getline(iss, capParam, '\r');
+				if (capParam == "END") {
+					std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
+					send(clientSocket, welcome.c_str(), welcome.length(), 0);
+					gotEnd = true;
+					break;
 				}
 				else {
-					std::string welcome = "001 " + receivedNickname + " :\r\n";
-					send(clientSocket, welcome.c_str(), welcome.length(), 0);
+					std::string ack;
+					if (capParam[2] != '\0') {
+						std::string	token;
+						std::getline(iss, token, '\r');
+						ack = "CAP * " + capParam + " " + token + "\r\n";
+					}
+					else {
+						ack = "CAP * " + capParam + "\r\n";
+					}
+					send(clientSocket, ack.c_str(), ack.length(), 0);
 				}
-				break;
 			}
 			else if (cmd == "PASS") {
 				std::string	receivedPassword;
@@ -114,26 +120,20 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 					std::cout << "Incorrect password. Connection refused." << receivedPassword << std::endl;
 					return false;
 				}
-				gotPassword = true;
 			}
 			else if (cmd == "NICK") {
 				std::getline(iss, receivedNickname, '\r');
 				if (!isValidNickname(receivedNickname, _clients)) {
 					return false;
 				}
-				gotNickname = true;
 			}
 			else if (cmd == "USER") {
 				std::getline(iss, receivedUsername, ' ');
-				gotUsername = true;
-				std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
-				send(clientSocket, welcome.c_str(), welcome.length(), 0);
 			}
 			std::getline(iss, cmd, '\n');
 		}
 	}
 	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
-	
 	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
 	return true;
 }
@@ -257,10 +257,16 @@ void Ircserv::runServer() {
 							std::istringstream iss(command);
 							std::string	token;
 							std::getline(iss, token, ' ');
-							std::getline(iss, token, ' ');
+							std::getline(iss, token, '\r');
 							std::string fullMessage = "PONG " + token + "\r\n";
 							std::cout << fullMessage << std::endl;
 							send((_server.fds[i]).fd, fullMessage.c_str(), fullMessage.length(), 0);
+						}
+						else if (command.find("QUIT") == 0) {
+							(_server.fds).erase((_server.fds).begin() + i);
+							eraseClient((_server.fds[i]).fd);
+							close((_server.fds[i]).fd);
+							--i;
 						}
 					} else {
 						// Connection closed by client or error reading
