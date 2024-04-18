@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 16:35:58 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/18 17:49:30 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ void	Ircserv::initServer() {
 }
 
 bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _password) {
-	bool		gotEnd = false;
+	bool		gotEnd = false, gotPassword = false;
 	std::string	receivedNickname;
 	std::string	receivedUsername;
 
@@ -95,8 +95,6 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 				std::string	capParam;
 				std::getline(iss, capParam, '\r');
 				if (capParam == "END") {
-					std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
-					send(clientSocket, welcome.c_str(), welcome.length(), 0);
 					gotEnd = true;
 					break;
 				}
@@ -117,9 +115,10 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 				std::string	receivedPassword;
 				std::getline(iss, receivedPassword, '\r');
 				if (receivedPassword != _password) {
-					std::cout << "Incorrect password. Connection refused." << receivedPassword << std::endl;
+					std::cout << RED "Incorrect password. Connection rejected : " << receivedPassword << "" EOC << std::endl;
 					return false;
 				}
+				gotPassword = true;
 			}
 			else if (cmd == "NICK") {
 				std::getline(iss, receivedNickname, '\r');
@@ -133,6 +132,12 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 			std::getline(iss, cmd, '\n');
 		}
 	}
+	if (!gotPassword) {
+		std::cout << RED "No password has been provided. Connection rejected." EOC << std::endl;
+		return false;
+	}
+	std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
+	send(clientSocket, welcome.c_str(), welcome.length(), 0);
 	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
 	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
 	return true;
