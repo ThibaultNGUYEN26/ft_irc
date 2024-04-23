@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IrcUtils.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 16:08:10 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/23 15:52:35 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,8 +108,7 @@ bool	isValidNickname(const std::string& nickname, clientMap& clients) {
 
 void	handleJoinCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists, create it if not
-
-	channelMap::iterator	it = channels.find(channelName);
+	channelMap::iterator it = channels.find(channelName);
 	if (it == channels.end()) {
 		channels[channelName] = new Channel(channelName);
 		(channels[channelName])->addClient(clientSocket);
@@ -117,7 +116,6 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 	else {
 		(it->second)->addClient(clientSocket);
 	}
-	
 	// Notify all clients in the channel about the new member
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
@@ -129,7 +127,6 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 	// Send JOIN message back to the client to confirm
 	std::string joinConfirm = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
 	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
-
 	// Inform the other clients
 	std::vector<int>& members = (channels[channelName])->getClients();
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
@@ -141,52 +138,36 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
-	int	test = 0;
-	std::vector<int> members;
+	std::string nickname;
+	std::vector<int>::iterator	memberIt;
 	channelMap::iterator it = channels.find(channelName);
-	
+	std::vector<int>& members = (channels[channelName])->getClients();
 	if (it != channels.end()) {
 		// Find the client's socket in the channel members list and remove it
-		members = (it->second)->getClients();
-		std::vector<int>::iterator memberIt = members.begin();
-		int	len = ((it->second)->getClients()).size();
-		while (memberIt != members.end()) {
-			if (*memberIt == clientSocket) {
-				memberIt = members.erase(memberIt);
-				break ;
-			} else {
-				++memberIt;
-				++test;
-			}
-		}
-		if (test == len) {
+		memberIt = std::find(members.begin(), members.end(), clientSocket);
+		if (memberIt == members.end())
 			return ;
+		clientMap::iterator itClient = clients.begin();
+		while (itClient != clients.end()) {
+			if ((itClient->second)->getSocket() == clientSocket) {
+				nickname = (itClient->second)->getNickname();
+				break;
+			}
+			++itClient;
 		}
+		members.erase(memberIt);
 		// If the channel becomes empty, remove it from the channels map
 		if (members.empty()) {
 			channels.erase(it);
 		}
 	}
-
-	// Notify the client about leaving the channel
-	std::string nickname;
-	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-		if ((it->second)->getSocket() == clientSocket) {
-			nickname = (it->second)->getNickname();
-			break;
-		}
-	}
-
 	// Send PART message back to the client to confirm leaving
 	std::string leaveConfirm = ":" + nickname + "!~user@host PART :" + channelName + "\r\n";
 	send(clientSocket, leaveConfirm.c_str(), leaveConfirm.size(), 0);
-
 	// Notify all clients in the channel about the member leaving
 	if (!members.empty()) {
 		for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
-			if (*memberIt != clientSocket) {
-				send(*memberIt, leaveConfirm.c_str(), leaveConfirm.size(), 0);
-			}
+			send(*memberIt, leaveConfirm.c_str(), leaveConfirm.size(), 0);
 		}
 	}
 }
