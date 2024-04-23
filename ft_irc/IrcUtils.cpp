@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/23 15:52:35 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/23 18:04:13 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,6 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		std::cerr << "No such channel: " << channelName << std::endl;
 		return;
 	}
-
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
@@ -190,7 +189,6 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 			break;
 		}
 	}
-	
 	// Find the user to kick based on their nickname
 	int userSocket = -1;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); ++it) {
@@ -199,12 +197,10 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 			break;
 		}
 	}
-
 	if (userSocket == -1) {
 		std::cerr << "User not found: " << userToKick << std::endl;
 		return;
 	}
-
 	// Check if the user is in the channel
 	std::vector<int>& members = (channelIt->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
@@ -212,18 +208,18 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		std::cerr << "User not found in channel: " << userToKick << std::endl;
 		return;
 	}
-
-	// Remove the user from the channel
-	members.erase(pos);
-
 	// Notify the kicked user and all channel members
 	std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
-
 	// Send message to all clients in the channel and the kicked user
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
-		send(*memberIt, kickMessage.c_str(), kickMessage.length(), 0);
+		if (*memberIt != userSocket) {
+			send(*memberIt, kickMessage.c_str(), kickMessage.length(), 0);
+		}
 	}
+	kickMessage = ":" + userToKick + "!~user@host PART :" + channelName + "\r\n";
 	send(userSocket, kickMessage.c_str(), kickMessage.length(), 0);
+	// Remove the user from the channel
+	members.erase(pos);
 }
 
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels) {
