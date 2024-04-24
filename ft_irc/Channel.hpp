@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:49:07 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 16:09:44 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/23 20:12:08 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ public:
 	const std::string&	getChannelName() const;
 	const std::string&	getTopic() const;
 	std::vector<int>&	getClients();
+	const std::string&	getKey() const;
 
 	void	setTopic(const std::string& topic);
 	void	addClient(const int& clientSocket);

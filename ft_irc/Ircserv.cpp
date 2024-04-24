@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 17:49:30 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/24 17:02:32 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,21 +194,24 @@ void Ircserv::runServer() {
 					char buffer[1024];
 					memset(buffer, 0, sizeof(buffer));
 					ssize_t bytesRead = read((_server.fds[i]).fd, buffer, sizeof(buffer) - 1);
-
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0';
 						std::string command(buffer);
-
 						// Print the received command to the console
 						std::cout << "Received command from client: " << buffer << std::endl;
-						
 						if (command.find("JOIN") == 0) {
 							// Extract the channel name from the command
 							std::istringstream iss(command);
-							std::string channelName;
+							std::string channelName, key;
 							std::getline(iss, channelName, ' ');
-							std::getline(iss, channelName, '\r');
-							handleJoinCommand(_server.fds[i].fd, channelName, _clients, _channels);
+							std::getline(iss, channelName, ' ');
+							if (channelName[channelName.length() - 1] == '\n') {
+								channelName = channelName.substr(0, channelName.length() - 2);
+							}
+							else {
+								std::getline(iss, key, '\r');
+							}
+							handleJoinCommand(_server.fds[i].fd, channelName, key, _clients, _channels);
 						}
 						else if (command.find("PART") == 0) {
 							// Extract the channel name from the command
@@ -226,7 +229,6 @@ void Ircserv::runServer() {
 							std::getline(iss, userToKick, ' ');
 							std::getline(iss, reason, ':');
 							std::getline(iss, reason, '\r');
-
 							// Trim any leading spaces from the reason
 							size_t startPos = reason.find_first_not_of(" ");
 							if (startPos != std::string::npos) {
@@ -284,7 +286,6 @@ void Ircserv::runServer() {
 							} else {
 								std::getline(iss, modeCommand, '\r');
 							}
-
 							size_t startModePos = modeCommand.find_first_not_of(" ");
 							size_t startParamPos = param.find_first_not_of(" ");
 							if (startModePos != std::string::npos) {

@@ -3,16 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 16:05:46 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/24 16:39:48 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <Channel.hpp>
 
-Channel::Channel(std::string channelName) : _channelName(channelName) {}
+Channel::Channel(std::string channelName) : _channelName(channelName) {
+	_key = "";
+	std::cout << "key : *" << _key << "*" << std::endl;
+}
 
 Channel::~Channel() {}
 
@@ -26,6 +29,10 @@ const	std::string& Channel::getTopic() const {
 
 std::vector<int>&	Channel::getClients() {
 	return _clients;
+}
+
+const	std::string& Channel::getKey() const {
+	return _key;
 }
 
 void	Channel::addClient(const int& clientSocket) {

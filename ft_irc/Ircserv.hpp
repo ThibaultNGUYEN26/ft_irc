@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/18 13:14:15 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/23 20:01:22 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,13 +77,9 @@ private:
 bool	isValidNickname(const std::string& nickname, clientMap& clients);
 
 
-void	handleJoinCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels);
+void	handleJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels);
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels);
-
 void	handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels);
-
 void	handleTopicCommand(int clientSocket, const std::string& channelName, const std::string& newTopic, clientMap& clients, channelMap& channels);
-
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels);
-
 void	sendDM(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients);

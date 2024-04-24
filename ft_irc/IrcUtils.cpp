@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/23 18:04:13 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/24 17:49:53 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ int getUserSocket(const std::string& nickname, clientMap& clients) {
 	}
 	return -1;
 }
-
 // Modify or check channel modes
 void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName, const std::string& modeSequence, const std::string& parameter, clientMap& clients, channelMap& channels) {
 	channelMap::iterator channelIt = channels.find(channelName);
@@ -28,7 +27,6 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 		std::cerr << "No such channel: " << channelName << std::endl;
 		return;
 	}
-
 	Channel* channel = channelIt->second;
 	std::vector<int>& members = (channelIt->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), clientSocket);
@@ -36,40 +34,40 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 		std::cerr << "User not found in channel: " << std::endl;
 		return;
 	}
-
-	// Parse mode sequence
 	int targetSocket = 0;
-	bool addMode = true;
+	bool status = true;
 	for (size_t i = 0; i < modeSequence.size(); ++i) {
 		char mode = modeSequence[i];
-		
 		if (mode == '+') {
-			addMode = true;
+			status = true;
 		} else if (mode == '-') {
-			addMode = false;
+			status = false;
 		} else {
 			switch (mode) {
-				case 'i':  // Invite-only mode
-					channel->setInviteOnly(addMode);
+				case 'i':
+					channel->setInviteOnly(status);
 					break;
-				case 't':  // Topic control mode
-					channel->setTopicControl(addMode);
+				case 't':
+					channel->setTopicControl(status);
 					break;
-				case 'k':  // Channel key (password)
-					if (addMode) {
+				case 'k':
+					std::cout << "on est bien dans le k case" << std::endl;
+					if (status) {
+						std::cout << "key before setting : " << channel->getKey() << std::endl;
 						channel->setKey(parameter);
+						std::cout << "key after setting : " << channel->getKey() << std::endl;
 					} else {
 						channel->removeKey();
 					}
 					break;
-				case 'o':  // Operator privilege
+				case 'o':
 					targetSocket = getUserSocket(parameter, clients);
 					if (targetSocket != -1) {
-						channel->setOperator(clientSocket, targetSocket, addMode, clients);
+						channel->setOperator(clientSocket, targetSocket, status, clients);
 					}
 					break;
-				case 'l':  // User limit
-					if (addMode) {
+				case 'l':
+					if (status) {
 						int limit = atoi(parameter.c_str());
 						channel->setUserLimit(limit);
 					} else {
@@ -81,7 +79,6 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 			}
 		}
 	}
-
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
@@ -106,17 +103,8 @@ bool	isValidNickname(const std::string& nickname, clientMap& clients) {
 	return true;
 }
 
-void	handleJoinCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels) {
-	// Check if the channel exists, create it if not
-	channelMap::iterator it = channels.find(channelName);
-	if (it == channels.end()) {
-		channels[channelName] = new Channel(channelName);
-		(channels[channelName])->addClient(clientSocket);
-	}
-	else {
-		(it->second)->addClient(clientSocket);
-	}
-	// Notify all clients in the channel about the new member
+void	handleJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels) {
+	// Get client nickname
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
@@ -124,7 +112,22 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, clientM
 			break;
 		}
 	}
-	// Send JOIN message back to the client to confirm
+	// Check if the channel exists, create it if not
+	channelMap::iterator it = channels.find(channelName);
+	if (it == channels.end()) {
+		channels[channelName] = new Channel(channelName);
+		(channels[channelName])->addClient(clientSocket);
+	}
+	else {
+		if (!((it->second)->getKey().empty()) && key != (it->second)->getKey()) {
+			std::string joinFail = ":localhost 475 " + nickname + " " + channelName + " :Cannot join channel (+k) - incorrect key\r\n";
+			send(clientSocket, joinFail.c_str(), joinFail.size(), 0);
+			return ;
+		}
+		(it->second)->addClient(clientSocket);
+	}
+	// Notify all clients in the channel about the new member
+	// && Send JOIN message back to the client to confirm
 	std::string joinConfirm = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
 	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
 	// Inform the other clients
