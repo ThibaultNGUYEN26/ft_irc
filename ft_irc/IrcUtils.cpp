@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/24 17:49:53 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/25 18:46:56 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,25 +106,30 @@ bool	isValidNickname(const std::string& nickname, clientMap& clients) {
 void	handleJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels) {
 	// Get client nickname
 	std::string nickname;
-	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-		if ((it->second)->getSocket() == clientSocket) {
-			nickname = (it->second)->getNickname();
+	clientMap::iterator itClient = clients.begin();
+	
+	while (itClient != clients.end()) {
+		if ((itClient->second)->getSocket() == clientSocket) {
+			nickname = (itClient->second)->getNickname();
 			break;
 		}
+		++itClient;
 	}
 	// Check if the channel exists, create it if not
-	channelMap::iterator it = channels.find(channelName);
-	if (it == channels.end()) {
+	channelMap::iterator itChannel = channels.find(channelName);
+	if (itChannel == channels.end()) {
 		channels[channelName] = new Channel(channelName);
 		(channels[channelName])->addClient(clientSocket);
+		(itClient->second)->setOperator(true);
 	}
 	else {
-		if (!((it->second)->getKey().empty()) && key != (it->second)->getKey()) {
+		if (!((itChannel->second)->getKey().empty()) && key != (itChannel->second)->getKey()) {
 			std::string joinFail = ":localhost 475 " + nickname + " " + channelName + " :Cannot join channel (+k) - incorrect key\r\n";
 			send(clientSocket, joinFail.c_str(), joinFail.size(), 0);
 			return ;
 		}
-		(it->second)->addClient(clientSocket);
+		(itChannel->second)->addClient(clientSocket);
+		(itClient->second)->setOperator(false);
 	}
 	// Notify all clients in the channel about the new member
 	// && Send JOIN message back to the client to confirm
@@ -143,9 +148,9 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 	// Check if the channel exists
 	std::string nickname;
 	std::vector<int>::iterator	memberIt;
-	channelMap::iterator it = channels.find(channelName);
+	channelMap::iterator itChannel = channels.find(channelName);
 	std::vector<int>& members = (channels[channelName])->getClients();
-	if (it != channels.end()) {
+	if (itChannel != channels.end()) {
 		// Find the client's socket in the channel members list and remove it
 		memberIt = std::find(members.begin(), members.end(), clientSocket);
 		if (memberIt == members.end())
@@ -154,6 +159,7 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 		while (itClient != clients.end()) {
 			if ((itClient->second)->getSocket() == clientSocket) {
 				nickname = (itClient->second)->getNickname();
+				(itClient->second)->setOperator(false);
 				break;
 			}
 			++itClient;
@@ -161,7 +167,7 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 		members.erase(memberIt);
 		// If the channel becomes empty, remove it from the channels map
 		if (members.empty()) {
-			channels.erase(it);
+			channels.erase(itChannel);
 		}
 	}
 	// Send PART message back to the client to confirm leaving
@@ -177,11 +183,12 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 
 void handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
-	channelMap::iterator channelIt = channels.find(channelName);
-	if (channelIt == channels.end()) {
+	channelMap::iterator itChannel = channels.find(channelName);
+	if (itChannel == channels.end()) {
 		std::cerr << "No such channel: " << channelName << std::endl;
 		return;
 	}
+	// Check if the person kicking has operator privilege
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
@@ -193,24 +200,28 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		}
 	}
 	// Find the user to kick based on their nickname
-	int userSocket = -1;
-	for (clientMap::iterator it = clients.begin(); it != clients.end(); ++it) {
+	int userSocket;
+	clientMap::iterator it = clients.begin();
+	while (it != clients.end()) {
 		if (it->second->getNickname() == userToKick) {
 			userSocket = it->second->getSocket();
 			break;
 		}
+		++it;
 	}
-	if (userSocket == -1) {
+	if (it == clients.end()) {
 		std::cerr << "User not found: " << userToKick << std::endl;
 		return;
 	}
 	// Check if the user is in the channel
-	std::vector<int>& members = (channelIt->second)->getClients();
+	std::vector<int>& members = (itChannel->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
 	if (pos == members.end()) {
 		std::cerr << "User not found in channel: " << userToKick << std::endl;
 		return;
 	}
+	// Set operator privilege to false for person getting kicked out
+	(it->second)->setOperator(false);
 	// Notify the kicked user and all channel members
 	std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
 	// Send message to all clients in the channel and the kicked user
@@ -235,8 +246,8 @@ void	broadcastToChannel(int senderSocket, const std::string& channelName, const 
 		}
 	}
 	// Find the channel in the map
-	channelMap::iterator channelIt = channels.find(channelName);
-	if (channelIt == channels.end()) {
+	channelMap::iterator itChannel = channels.find(channelName);
+	if (itChannel == channels.end()) {
 		std::string fullMessage = nickname + " " + channelName + " :" + "No such channel" + "\r\n";
 		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
 		return ;
@@ -245,7 +256,7 @@ void	broadcastToChannel(int senderSocket, const std::string& channelName, const 
 	std::string fullMessage = ":" + nickname + "!~user@host PRIVMSG " + channelName + " :" + message + "\r\n";
 
 	// Broadcast the message to all channel members except the sender.
-	std::vector<int>& members = (channelIt->second)->getClients();
+	std::vector<int>& members = (itChannel->second)->getClients();
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
 		if (*memberIt != senderSocket) {
 			send(*memberIt, fullMessage.c_str(), fullMessage.length(), 0);
