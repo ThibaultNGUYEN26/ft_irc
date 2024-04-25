@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/25 18:46:56 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/25 19:39:24 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,13 +91,15 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 	broadcastToChannel(clientSocket, channelName, modeChangeMessage, clients, channels);
 }
 
-bool	isValidNickname(const std::string& nickname, clientMap& clients) {
+bool	isValidNickname(const std::string& nickname, clientMap& clients, int& clientSocket) {
 	if (nickname.length() > 9) {
-		std::cout << RED "Nickname's length exceeds 9 characters. Change it before registering again." EOC << std::endl;	
+		std::string nickFail = ":localhost 432 " + nickname + " :Erroneus nickname\r\n";
+		send(clientSocket, nickFail.c_str(), nickFail.size(), 0);
 		return false;
 	}
 	if (clients.find(nickname) != clients.end()) {
-		std::cout << RED "Nickname already exists within the server's clients. Change it before registering again." EOC << std::endl;
+		std::string nickFail = ":localhost 433 " + nickname + " :Nickname is already in use\r\n";
+		send(clientSocket, nickFail.c_str(), nickFail.size(), 0);
 		return false;
 	}
 	return true;

@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/24 17:02:32 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/25 19:29:36 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 			return false;
 		}
 		buffer[bytesRead] = '\0';
-		
+
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
 		std::string	cmd;
@@ -122,7 +122,7 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 			}
 			else if (cmd == "NICK") {
 				std::getline(iss, receivedNickname, '\r');
-				if (!isValidNickname(receivedNickname, _clients)) {
+				if (!isValidNickname(receivedNickname, _clients, clientSocket)) {
 					return false;
 				}
 			}
@@ -274,6 +274,14 @@ void Ircserv::runServer() {
 							eraseClient((_server.fds[i]).fd);
 							close((_server.fds[i]).fd);
 							--i;
+						}
+						else if (command.find("INVITE") == 0) {
+							std::istringstream iss(command);
+							std::string	nickname, channelName;
+							std::getline(iss, nickname, ' ');
+							std::getline(iss, nickname, ' ');
+							std::getline(iss, channelName, '\r');
+							std::cout << "Channel: " << channelName << " nickname: " << nickname << std::endl;
 						}
 						else if (command.find("MODE") == 0) {
 							std::istringstream iss(command);

@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/23 20:01:22 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/25 19:29:58 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,8 +74,7 @@ private:
 	channelMap	_channels;
 };
 
-bool	isValidNickname(const std::string& nickname, clientMap& clients);
-
+bool	isValidNickname(const std::string& nickname, clientMap& clients, int& clientSocket);
 
 void	handleJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels);
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels);
