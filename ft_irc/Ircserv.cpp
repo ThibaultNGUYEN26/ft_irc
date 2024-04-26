@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 13:48:22 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 14:40:24 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,9 +275,9 @@ void Ircserv::runServer() {
 							send((_server.fds[i]).fd, fullMessage.c_str(), fullMessage.length(), 0);
 						}
 						else if (command.find("QUIT") == 0) {
-							(_server.fds).erase((_server.fds).begin() + i);
 							eraseClient((_server.fds[i]).fd);
 							close((_server.fds[i]).fd);
+							(_server.fds).erase((_server.fds).begin() + i - 1);
 							--i;
 						}
 						else if (command.find("INVITE") == 0) {

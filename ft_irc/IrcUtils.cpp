@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 14:00:58 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 14:16:05 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,22 +193,25 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 }
 
 void handleKickCommand(int clientSocket, const std::string& channelName, const std::string& userToKick, const std::string& reason, clientMap& clients, channelMap& channels) {
-	// Check if the channel exists
-	channelMap::iterator itChannel = channels.find(channelName);
-	if (itChannel == channels.end()) {
-		std::cerr << "No such channel: " << channelName << std::endl;
-		return;
-	}
 	// Check if the person kicking has operator privilege
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
 			if ((it->second)->getOperator() == false) {
+				std::string	kickFail = "localhost 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
+				send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
 				return ;
 			}
 			nickname = (it->second)->getNickname();
 			break;
 		}
+	}
+	// Check if the channel exists
+	channelMap::iterator itChannel = channels.find(channelName);
+	if (itChannel == channels.end()) {
+		std::string	kickFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
+		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
+		return;
 	}
 	// Find the user to kick based on their nickname
 	int userSocket;
@@ -221,14 +224,16 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		++it;
 	}
 	if (it == clients.end()) {
-		std::cerr << "User not found: " << userToKick << std::endl;
+		std::string	kickFail = "localhost 442 " + userToKick + " " + channelName + " :Client just doesn't exist\r\n";
+		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
 		return;
 	}
 	// Check if the user is in the channel
 	std::vector<int>& members = (itChannel->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
 	if (pos == members.end()) {
-		std::cerr << "User not found in channel: " << userToKick << std::endl;
+		std::string	kickFail = "localhost 442 " + userToKick + " " + channelName + " :You're not on that channel\r\n";
+		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
 		return;
 	}
 	// Set operator privilege to false for person getting kicked out
