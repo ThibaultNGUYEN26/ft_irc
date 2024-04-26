@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 13:42:13 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 14:00:58 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,15 +146,19 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, const s
 
 void	handleLeaveCommand(int clientSocket, const std::string& channelName, clientMap& clients, channelMap& channels) {
 	// Check if the channel exists
-	std::string nickname;
+	std::string					nickname;
+	std::vector<int>			*members;
 	std::vector<int>::iterator	memberIt;
 	channelMap::iterator itChannel = channels.find(channelName);
-	std::vector<int>& members = (channels[channelName])->getClients();
 	if (itChannel != channels.end()) {
 		// Find the client's socket in the channel members list and remove it
-		memberIt = std::find(members.begin(), members.end(), clientSocket);
-		if (memberIt == members.end())
+		members = &((channels[channelName])->getClients());
+		memberIt = std::find(members->begin(), members->end(), clientSocket);
+		if (memberIt == members->end()) {
+			std::string	leaveFail = "localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
+			send(clientSocket, leaveFail.c_str(), leaveFail.size(), 0);
 			return ;
+		}
 		clientMap::iterator itClient = clients.begin();
 		while (itClient != clients.end()) {
 			if ((itClient->second)->getSocket() == clientSocket) {
@@ -164,19 +168,26 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 			}
 			++itClient;
 		}
-		members.erase(memberIt);
+		members->erase(memberIt);
 		// If the channel becomes empty, remove it from the channels map
-		if (members.empty()) {
+		if (members->empty()) {
 			channels.erase(itChannel);
 		}
+	}
+	else {
+		std::string	leaveFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
+		send(clientSocket, leaveFail.c_str(), leaveFail.size(), 0);
+		return ;
 	}
 	// Send PART message back to the client to confirm leaving
 	std::string leaveConfirm = ":" + nickname + "!~user@host PART :" + channelName + "\r\n";
 	send(clientSocket, leaveConfirm.c_str(), leaveConfirm.size(), 0);
 	// Notify all clients in the channel about the member leaving
-	if (!members.empty()) {
-		for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
+	if (!members->empty()) {
+		memberIt = members->begin();
+		while (memberIt != members->end()) {
 			send(*memberIt, leaveConfirm.c_str(), leaveConfirm.size(), 0);
+			++memberIt;
 		}
 	}
 }
