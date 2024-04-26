@@ -6,13 +6,13 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/25 18:33:52 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 19:54:33 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <Channel.hpp>
 
-Channel::Channel(std::string channelName) : _channelName(channelName) {
+Channel::Channel(std::string channelName) : _channelName(channelName), _userLimit(-1) {
 	_key = "";
 	std::cout << "key : *" << _key << "*" << std::endl;
 }
@@ -35,8 +35,17 @@ const	std::string& Channel::getKey() const {
 	return _key;
 }
 
+const int&	Channel::getUsers() const {
+	return _users;
+}
+
+const int&	Channel::getUserLimit() const {
+	return _userLimit;
+}
+
 void	Channel::addClient(const int& clientSocket) {
 	_clients.push_back(clientSocket);
+	_users++;
 }
 
 void	Channel::setTopic(const std::string& topic) {
@@ -75,12 +84,15 @@ void	Channel::setKey(const std::string& newKey) {
 	_key = newKey;
 }
 
-void	Channel::removeKey() {
-	_key.clear();
+void	Channel::setUserLimit(int limit) {
+	if (limit < 0) {
+		return ;
+	}
+	_userLimit = limit;
 }
 
-void	Channel::setUserLimit(int limit) {
-	_userLimit = limit;
+void	Channel::removeKey() {
+	_key.clear();
 }
 
 void	Channel::removeUserLimit() {

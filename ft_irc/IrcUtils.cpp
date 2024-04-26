@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 14:55:39 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 19:56:34 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,30 @@ int getUserSocket(const std::string& nickname, clientMap& clients) {
 	}
 	return -1;
 }
+
 // Modify or check channel modes
 void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName, const std::string& modeSequence, const std::string& parameter, clientMap& clients, channelMap& channels) {
+	// Nickname of the client
+	std::string nickname;
+	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			nickname = (it->second)->getNickname();
+			break;
+		}
+	}
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
-		std::cerr << "No such channel: " << channelName << std::endl;
-		return;
+		std::string	modeFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
+		send(clientSocket, modeFail.c_str(), modeFail.size(), 0);
+		return ;
 	}
 	Channel* channel = channelIt->second;
 	std::vector<int>& members = (channelIt->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), clientSocket);
 	if (pos == members.end()) {
-		std::cerr << "User not found in channel: " << std::endl;
-		return;
+		std::string	modeFail = "localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
+		send(clientSocket, modeFail.c_str(), modeFail.size(), 0);
+		return ;
 	}
 	int targetSocket = 0;
 	bool status = true;
@@ -51,11 +62,8 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 					channel->setTopicControl(status);
 					break;
 				case 'k':
-					std::cout << "on est bien dans le k case" << std::endl;
 					if (status) {
-						std::cout << "key before setting : " << channel->getKey() << std::endl;
 						channel->setKey(parameter);
-						std::cout << "key after setting : " << channel->getKey() << std::endl;
 					} else {
 						channel->removeKey();
 					}
@@ -77,13 +85,6 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 				default:
 					std::cerr << "Unknown mode: " << mode << std::endl;
 			}
-		}
-	}
-	std::string nickname;
-	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-		if ((it->second)->getSocket() == clientSocket) {
-			nickname = (it->second)->getNickname();
-			break;
 		}
 	}
 	// Broadcast mode change to all channel members
@@ -170,7 +171,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	if (itChannel == channels.end()) {
 		std::string	kickFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
 		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return;
+		return ;
 	}
 	// Find the user to kick based on their nickname
 	int userSocket;
@@ -185,7 +186,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	if (it == clients.end()) {
 		std::string	kickFail = "localhost 442 " + userToKick + " " + channelName + " :Client just doesn't exist\r\n";
 		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return;
+		return ;
 	}
 	// Check if the user is in the channel
 	std::vector<int>& members = (itChannel->second)->getClients();
@@ -193,7 +194,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	if (pos == members.end()) {
 		std::string	kickFail = "localhost 442 " + userToKick + " " + channelName + " :You're not on that channel\r\n";
 		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return;
+		return ;
 	}
 	// Set operator privilege to false for person getting kicked out
 	(it->second)->setOperator(false);
@@ -269,7 +270,7 @@ void handleTopicCommand(int clientSocket, const std::string& channelName, const 
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
 		std::cerr << "No such channel: " << channelName << std::endl;
-		return;
+		return ;
 	}
 	// Check if a new topic is provided
 	if (!newTopic.empty()) {
@@ -284,7 +285,7 @@ void handleTopicCommand(int clientSocket, const std::string& channelName, const 
 		}
 		if (!clientInChannel) {
 			std::cerr << "Client not in channel: " << channelName << std::endl;
-			return;
+			return ;
 		}
 		std::string nickname;
 		for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {

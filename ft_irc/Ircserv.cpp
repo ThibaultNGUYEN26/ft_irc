@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 18:30:44 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 20:01:49 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,7 +201,6 @@ void Ircserv::runServer() {
 						std::cout << "Received command from client: " << buffer << std::endl;
 						if (command.find("JOIN") == 0) {
 							// Extract the channel name from the command
-							// NEW
 							command = command.substr(5, command.length());
 							std::istringstream iss(command);
 							std::string	channels, keys, channelName, key;
@@ -259,7 +258,6 @@ void Ircserv::runServer() {
 						else if (command.find("TOPIC") == 0) {
 							std::istringstream iss(command);
 							std::string channelName, topic;
-
 							std::getline(iss, channelName, ' ');
 							std::getline(iss, channelName, ' ');
 							std::getline(iss, topic, ':');
@@ -289,6 +287,7 @@ void Ircserv::runServer() {
 							std::getline(iss, nickname, ' ');
 							std::getline(iss, channelName, '\r');
 							std::cout << "Channel: " << channelName << " nickname: " << nickname << std::endl;
+							
 						}
 						else if (command.find("MODE") == 0) {
 							std::istringstream iss(command);
