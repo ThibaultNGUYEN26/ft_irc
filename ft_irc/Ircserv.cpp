@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 14:40:24 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 18:30:44 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,7 +193,7 @@ void Ircserv::runServer() {
 					// Existing client socket had an event that needs to be read
 					char buffer[1024];
 					memset(buffer, 0, sizeof(buffer));
-					ssize_t bytesRead = read((_server.fds[i]).fd, buffer, sizeof(buffer) - 1);
+					ssize_t bytesRead = recv((_server.fds[i]).fd, buffer, sizeof(buffer) - 1, 0);
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0';
 						std::string command(buffer);
@@ -201,22 +201,24 @@ void Ircserv::runServer() {
 						std::cout << "Received command from client: " << buffer << std::endl;
 						if (command.find("JOIN") == 0) {
 							// Extract the channel name from the command
+							// NEW
+							command = command.substr(5, command.length());
 							std::istringstream iss(command);
-							std::string channelName, key;
-							/* while (!= \r\rn) {
-								// get channelName
-								// get its key
-								// call JOIN
-							} */
-							std::getline(iss, channelName, ' ');
-							std::getline(iss, channelName, ' ');
-							if (channelName[channelName.length() - 1] == '\n') {
+							std::string	channels, keys, channelName, key;
+							std::getline(iss, channels, ' ');
+							std::getline(iss, keys, '\r');
+							std::cout << keys << std::endl;
+							std::istringstream ssChannel(channels), ssKey(keys);
+							while (std::getline(ssChannel, channelName, ',')) {
+								if (channelName[channelName.length() - 1] == '\n') {
 								channelName = channelName.substr(0, channelName.length() - 2);
+								}
+								else {
+									std::getline(ssKey, key, ',');
+								}
+								std::cout << "Name *" << channelName << "*, key *" << key << "*\n"; 
+								handleJoinCommand(_server.fds[i].fd, channelName, key, _clients, _channels);
 							}
-							else {
-								std::getline(iss, key, '\r');
-							}
-							handleJoinCommand(_server.fds[i].fd, channelName, key, _clients, _channels);
 						}
 						else if (command.find("PART") == 0) {
 							// Extract the channel name from the command
@@ -277,7 +279,7 @@ void Ircserv::runServer() {
 						else if (command.find("QUIT") == 0) {
 							eraseClient((_server.fds[i]).fd);
 							close((_server.fds[i]).fd);
-							(_server.fds).erase((_server.fds).begin() + i - 1);
+							(_server.fds).erase((_server.fds).begin() + i);
 							--i;
 						}
 						else if (command.find("INVITE") == 0) {
@@ -312,9 +314,9 @@ void Ircserv::runServer() {
 						}
 					} else {
 						// Connection closed by client or error reading
-						(_server.fds).erase((_server.fds).begin() + i);
 						eraseClient((_server.fds[i]).fd);
 						close((_server.fds[i]).fd);
+						(_server.fds).erase((_server.fds).begin() + i);
 						--i;
 					}
 				}

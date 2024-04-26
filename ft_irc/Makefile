@@ -6,7 +6,7 @@
 #    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/04/17 19:17:27 by rchbouki         ###   ########.fr        #
+#    Updated: 2024/04/26 14:56:05 by rchbouki         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ SRCS		=	Ircserv.cpp \
 				Client.cpp \
 				IrcUtils.cpp \
 				Channel.cpp \
+				Commands.cpp \
 				main.cpp
 
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))
