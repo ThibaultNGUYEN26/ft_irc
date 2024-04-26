@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/25 19:29:36 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 13:42:05 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,8 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 				std::string	receivedPassword;
 				std::getline(iss, receivedPassword, '\r');
 				if (receivedPassword != _password) {
-					std::cout << RED "Incorrect password. Connection rejected : " << receivedPassword << "" EOC << std::endl;
+					std::string passFail = ":localhost 464  :Password incorrect\r\n";
+					send(clientSocket, passFail.c_str(), passFail.size(), 0);
 					return false;
 				}
 				gotPassword = true;
@@ -133,7 +134,6 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 		}
 	}
 	if (!gotPassword) {
-		std::cout << RED "No password has been provided. Connection rejected." EOC << std::endl;
 		return false;
 	}
 	std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
@@ -203,6 +203,11 @@ void Ircserv::runServer() {
 							// Extract the channel name from the command
 							std::istringstream iss(command);
 							std::string channelName, key;
+							/* while (!= \r\rn) {
+								// get channelName
+								// get its key
+								// call JOIN
+							} */
 							std::getline(iss, channelName, ' ');
 							std::getline(iss, channelName, ' ');
 							if (channelName[channelName.length() - 1] == '\n') {

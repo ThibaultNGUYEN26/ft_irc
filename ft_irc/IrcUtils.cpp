@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/25 19:39:24 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/26 13:42:13 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,8 +98,6 @@ bool	isValidNickname(const std::string& nickname, clientMap& clients, int& clien
 		return false;
 	}
 	if (clients.find(nickname) != clients.end()) {
-		std::string nickFail = ":localhost 433 " + nickname + " :Nickname is already in use\r\n";
-		send(clientSocket, nickFail.c_str(), nickFail.size(), 0);
 		return false;
 	}
 	return true;
