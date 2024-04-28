@@ -6,7 +6,7 @@
 #    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/11 17:13:40 by thibnguy          #+#    #+#              #
-#    Updated: 2024/04/28 20:03:13 by rchbouki         ###   ########.fr        #
+#    Updated: 2024/04/28 21:31:29 by rchbouki         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,9 +17,15 @@ INCLUDES	=	.
 
 SRCS		=	Ircserv.cpp \
 				Client.cpp \
-				IrcUtils.cpp \
 				Channel.cpp \
-				Commands.cpp \
+				Register.cpp \
+				Join.cpp \
+				Invite.cpp \
+				Kick.cpp \
+				Leave.cpp \
+				Mode.cpp \
+				Topic.cpp \
+				IrcUtils.cpp \
 				Errors.cpp \
 				main.cpp
 

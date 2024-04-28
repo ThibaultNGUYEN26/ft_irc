@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Commands.cpp                                       :+:      :+:    :+:   */
+/*   Join.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/26 14:55:06 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 20:10:43 by rchbouki         ###   ########.fr       */
+/*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
+/*   Updated: 2024/04/28 21:36:28 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Ircserv.hpp"
 
-void	handleJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels) {
+void	executeJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels) {
 	// Get client nickname
 	std::string nickname;
 	clientMap::iterator itClient = clients.begin();
@@ -72,50 +72,23 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, const s
 	}
 }
 
-void	handleInviteCommand(int clientSocket, const std::string& channelName, const std::string& guest, clientMap& clients, channelMap& channels) {
-	// Check if the person kicking has operator privilege
-	std::string			nickname;
-	clientMap::iterator	it = clients.begin();
-	while (it != clients.end()) {
-		if ((it->second)->getSocket() == clientSocket) {
-			if ((it->second)->getOperator(channelName) == false) {
-				return ERRNOTOPERATOR(nickname, channelName, clientSocket);
-			}
-			nickname = (it->second)->getNickname();
-			break;
+void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
+	// Extract the channel name from the command
+	command = command.substr(5, command.length());
+	std::istringstream iss(command);
+	std::string	channelsToJoin, keys, channelName, key;
+	std::getline(iss, channelsToJoin, ' ');
+	std::getline(iss, keys, '\r');
+	std::cout << keys << std::endl;
+	std::istringstream ssChannel(channelsToJoin), ssKey(keys);
+	while (std::getline(ssChannel, channelName, ',')) {
+		if (channelName[channelName.length() - 1] == '\n') {
+		channelName = channelName.substr(0, channelName.length() - 2);
 		}
-		++it;
-	}
-	if (it == clients.end()) {
-		return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
-	}
-	// Check if the channel exists
-	channelMap::iterator itChannel = channels.find(channelName);
-	if (itChannel == channels.end()) {
-		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
-	}
-	// Find the user to kick based on their nickname
-	int userSocket;
-	it = clients.begin();
-	while (it != clients.end()) {
-		if (it->second->getNickname() == guest) {
-			userSocket = it->second->getSocket();
-			break;
+		else {
+			std::getline(ssKey, key, ',');
 		}
-		++it;
-	}
-	if (it == clients.end()) {
-		return ERRCLIENTUNKNOWN(guest, channelName, clientSocket);
-	}
-	// Check if the user is in the channel
-	std::vector<int>& members = (itChannel->second)->getClients();
-	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
-	if (pos != members.end()) {
-		return ERRINCHANNEL(nickname, guest, channelName, clientSocket);
-	}
-	RPL_INVITING(nickname, guest, channelName, clientSocket);
-	INVITE_MESSAGE(nickname, guest, channelName, userSocket);
-	if ((itChannel->second)->getInviteOnly() == true) {
-		(it->second)->setInvite(channelName, true);
+		std::cout << "Name *" << channelName << "*, key *" << key << "*\n"; 
+		executeJoinCommand(clientSocket, channelName, key, clients, channels);
 	}
 }

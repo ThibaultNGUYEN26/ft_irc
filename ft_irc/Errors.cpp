@@ -6,11 +6,11 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:13:58 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 20:16:54 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 22:01:16 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Errors.hpp"
+#include "IrcUtils.hpp"
 
 void	ERRINCORRECTPASSWORD(const int& clientSocket) {
 	std::string	_fail = ":localhost 464  :Password incorrect\r\n";
@@ -78,6 +78,7 @@ void	RPL_NOTOPIC(const std::string& nickname, const std::string& channelName, co
 }
 
 void	RPL_TOPIC(const std::string& nickname, const std::string& channelName, const std::string& topic, const int& clientSocket) {
-	std::string	topicMessage = ":localhost 332 " + nickname + " " + channelName + ":" + topic + "\r\n";
+	std::string	topicMessage = ":localhost 332 " + nickname + " " + channelName + " :" + topic + "\r\n";
+	std::cout << "THE TOPIC : " << topic << std::endl;
 	send(clientSocket, topicMessage.c_str(), topicMessage.length(), 0);
 }
