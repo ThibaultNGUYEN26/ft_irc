@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 20:01:49 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 17:37:08 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,7 +287,7 @@ void Ircserv::runServer() {
 							std::getline(iss, nickname, ' ');
 							std::getline(iss, channelName, '\r');
 							std::cout << "Channel: " << channelName << " nickname: " << nickname << std::endl;
-							
+							handleInviteCommand(_server.fds[i].fd, channelName, nickname, _clients, _channels);
 						}
 						else if (command.find("MODE") == 0) {
 							std::istringstream iss(command);

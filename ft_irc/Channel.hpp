@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:49:07 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 19:56:27 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/27 19:01:23 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,16 @@ public:
 	const std::string&	getKey() const;
 	const int&			getUsers() const;
 	const int&			getUserLimit() const;
+	const bool&			getInviteOnly() const;
 
 	void	setTopic(const std::string& topic);
-	void	addClient(const int& clientSocket);
-
-	void	setOperator(int clientSocket, int targetSocket, bool status, clientMap clients);
+	void	setOperator(int clientSocket, int targetSocket, bool status, clientMap clients, const std::string& channelName);
 	void	setInviteOnly(bool status);
 	void	setTopicControl(bool status);
 	void	setKey(const std::string& newKey);
 	void	setUserLimit(int limit);
+
+	void	addClient(const int& clientSocket);
 	void	removeKey();
 	void	removeUserLimit();
 

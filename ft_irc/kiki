@@ -1,0 +1,13 @@
+## opening test logs in server
+# /rawlog open <filename>
+
+## Netcat
+# nc irc.dal.net <port>
+NICK <nickname>
+USER <username> <realname> :Whatever you want
+
+PING :<params>
+
+PONG :<same params as PING>
+
+# Once that's done, send the raw messages directly

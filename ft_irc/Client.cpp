@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:05 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/25 18:33:23 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/27 21:34:55 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,6 @@ const std::string &Client::getUsername() const {
 	return _username;
 }
 
-void	Client::setOperator(bool status) {
-	_isOperator = status;
-}
-
 const std::string &Client::getNickname() const {
 	return _nickname;
 }
@@ -42,10 +38,26 @@ const int	&Client::getSocket() const {
 	return _socketClient;
 }
 
-const bool	&Client::getOperator() const {
-	return _isOperator;
+bool	Client::getIsInvited(const std::string& channelName) const {
+	std::map<std::string, bool>::const_iterator	it = _channelInvite.find(channelName);
+	if (it != _channelInvite.end()) {
+		return it->second;
+	}
+	return false;
 }
 
-void	Client::addChannel(Channel *newChannel, const std::string& channelName) {
-	_channels[channelName] = newChannel;
+const bool	&Client::getOperator(const std::string& channelName) const {
+	return (_channelOperator.find(channelName))->second;
+}
+
+void	Client::setInvite(const std::string& channelName, bool status) {
+	_channelInvite[channelName] = status;
+}
+
+void	Client::setOperator(const std::string& channelName, bool status) {
+	_channelOperator[channelName] = status;
+}
+
+void	Client::addChannel(const std::string& channelName, const bool& status) {
+	_channelOperator[channelName] = status;
 }

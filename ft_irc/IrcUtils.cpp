@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 19:56:34 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/27 21:11:48 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,14 +23,23 @@ int getUserSocket(const std::string& nickname, clientMap& clients) {
 
 // Modify or check channel modes
 void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName, const std::string& modeSequence, const std::string& parameter, clientMap& clients, channelMap& channels) {
+	if (channelName[0] != '#') {
+		return ;
+	}
 	// Nickname of the client
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
+			if ((it->second)->getOperator(channelName) == false) {
+				std::string	modeFail = "localhost 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
+				send(clientSocket, modeFail.c_str(), modeFail.size(), 0);
+				return ;
+			}
 			nickname = (it->second)->getNickname();
 			break;
 		}
 	}
+	// Look for the channel
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
 		std::string	modeFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
@@ -71,7 +80,7 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 				case 'o':
 					targetSocket = getUserSocket(parameter, clients);
 					if (targetSocket != -1) {
-						channel->setOperator(clientSocket, targetSocket, status, clients);
+						channel->setOperator(clientSocket, targetSocket, status, clients, channelName);
 					}
 					break;
 				case 'l':
@@ -109,6 +118,7 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 	std::string					nickname;
 	std::vector<int>			*members;
 	std::vector<int>::iterator	memberIt;
+	clientMap::iterator			itClient;
 	channelMap::iterator itChannel = channels.find(channelName);
 	if (itChannel != channels.end()) {
 		// Find the client's socket in the channel members list and remove it
@@ -119,16 +129,20 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 			send(clientSocket, leaveFail.c_str(), leaveFail.size(), 0);
 			return ;
 		}
-		clientMap::iterator itClient = clients.begin();
+		itClient = clients.begin();
 		while (itClient != clients.end()) {
 			if ((itClient->second)->getSocket() == clientSocket) {
 				nickname = (itClient->second)->getNickname();
-				(itClient->second)->setOperator(false);
+				(itClient->second)->setOperator(channelName, false);
 				break;
 			}
 			++itClient;
 		}
 		members->erase(memberIt);
+		// Take off the invite flag for the client leaving
+		if ((itChannel->second)->getInviteOnly() == true) {
+			(itClient->second)->setInvite(channelName, false);
+		}
 		// If the channel becomes empty, remove it from the channels map
 		if (members->empty()) {
 			channels.erase(itChannel);
@@ -157,7 +171,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	std::string nickname;
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
-			if ((it->second)->getOperator() == false) {
+			if ((it->second)->getOperator(channelName) == false) {
 				std::string	kickFail = "localhost 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
 				send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
 				return ;
@@ -197,7 +211,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		return ;
 	}
 	// Set operator privilege to false for person getting kicked out
-	(it->second)->setOperator(false);
+	(it->second)->setOperator(channelName, false);
 	// Notify the kicked user and all channel members
 	std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
 	// Send message to all clients in the channel and the kicked user
@@ -210,6 +224,9 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	send(userSocket, kickMessage.c_str(), kickMessage.length(), 0);
 	// Remove the user from the channel
 	members.erase(pos);
+	if ((itChannel->second)->getInviteOnly() == true) {
+		(it->second)->setInvite(channelName, false);
+	}
 }
 
 void	broadcastToChannel(int senderSocket, const std::string& channelName, const std::string& message, clientMap& clients, channelMap& channels) {

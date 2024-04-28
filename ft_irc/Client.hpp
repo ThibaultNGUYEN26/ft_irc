@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:01 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/18 16:12:15 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/04/27 21:34:49 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,17 @@ public:
 	const std::string	&getUsername() const;
 	const std::string	&getNickname() const;
 	const int			&getSocket() const;
-	const bool			&getOperator() const;
-	void				setOperator(bool status);
-	void		addChannel(Channel *newChannel, const std::string& channelName);
+	const bool			&getOperator(const std::string& channelName) const;
+	bool				getIsInvited(const std::string& channelName) const;
+	void				setOperator(const std::string& channelName, bool status);
+	void				setInvite(const std::string& channelName, bool status);
+	void				addChannel(const std::string& channelName, const bool& status);
 
 private:
 
 	int			_socketClient;
 	std::string	_username;
 	std::string	_nickname;
-	bool		_isOperator;
-	std::map<std::string, Channel *>	_channels;
+	std::map<std::string, bool>	_channelOperator;
+	std::map<std::string, bool>	_channelInvite;
 };

@@ -6,13 +6,13 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/26 19:54:33 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/27 20:08:34 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <Channel.hpp>
 
-Channel::Channel(std::string channelName) : _channelName(channelName), _userLimit(-1) {
+Channel::Channel(std::string channelName) : _channelName(channelName), _inviteOnly(false), _userLimit(-1) {
 	_key = "";
 	std::cout << "key : *" << _key << "*" << std::endl;
 }
@@ -43,6 +43,10 @@ const int&	Channel::getUserLimit() const {
 	return _userLimit;
 }
 
+const bool&		Channel::getInviteOnly() const {
+	return _inviteOnly;
+}
+
 void	Channel::addClient(const int& clientSocket) {
 	_clients.push_back(clientSocket);
 	_users++;
@@ -52,18 +56,18 @@ void	Channel::setTopic(const std::string& topic) {
 	_topic = topic;
 }
 
-void	Channel::setOperator(int clientSocket, int targetSocket, bool status, clientMap clients) {
+void	Channel::setOperator(int clientSocket, int targetSocket, bool status, clientMap clients, const std::string& channelName) {
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if (clientSocket == (it->second)->getSocket()) {
-			if ((it->second)->getOperator() == false)
+			if ((it->second)->getOperator(channelName) == false)
 				return ;
 			if (clientSocket == targetSocket) {
-				(it->second)->setOperator(status);
+				(it->second)->setOperator(channelName, status);
 			}
 			else {
 				for (clientMap::iterator itTarget = clients.begin(); itTarget != clients.end(); itTarget++) {
 					if (targetSocket == (itTarget->second)->getSocket()) {
-						(itTarget->second)->setOperator(status);
+						(itTarget->second)->setOperator(channelName, status);
 					}
 				}
 			}
