@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 17:37:08 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 19:40:29 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,8 +115,7 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 				std::string	receivedPassword;
 				std::getline(iss, receivedPassword, '\r');
 				if (receivedPassword != _password) {
-					std::string passFail = ":localhost 464  :Password incorrect\r\n";
-					send(clientSocket, passFail.c_str(), passFail.size(), 0);
+					ERRINCORRECTPASSWORD(clientSocket);
 					return false;
 				}
 				gotPassword = true;
@@ -136,8 +135,7 @@ bool	Ircserv::validateClientCommands(int& clientSocket, const std::string& _pass
 	if (!gotPassword) {
 		return false;
 	}
-	std::string welcome = "001 " + receivedNickname + " :" MAGENTA "Welcome to Titi&Riri's IRC serv" EOC "\r\n";
-	send(clientSocket, welcome.c_str(), welcome.length(), 0);
+	WELCOME_001(receivedNickname, clientSocket);
 	_clients[receivedNickname] = new Client(clientSocket, receivedUsername, receivedNickname);
 	std::cout << GREEN "Client : {" << receivedNickname << ", " << receivedUsername << ", " << clientSocket << "} successfully connected." EOC << std::endl;
 	return true;

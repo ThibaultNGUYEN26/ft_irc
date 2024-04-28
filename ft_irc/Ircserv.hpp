@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/16 12:23:51 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/04/28 17:36:36 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 20:01:30 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 #include "Client.hpp"
 #include "Channel.hpp"
+#include "Errors.hpp"
+
 #include <iostream>
 #include <cstdlib>
 #include <sstream>

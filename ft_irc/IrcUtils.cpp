@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 18:03:13 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/27 21:11:48 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 20:19:08 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,7 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
 			if ((it->second)->getOperator(channelName) == false) {
-				std::string	modeFail = "localhost 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
-				send(clientSocket, modeFail.c_str(), modeFail.size(), 0);
-				return ;
+				return ERRNOTOPERATOR(nickname, channelName, clientSocket);
 			}
 			nickname = (it->second)->getNickname();
 			break;
@@ -42,17 +40,13 @@ void Ircserv::handleModeCommand(int clientSocket, const std::string& channelName
 	// Look for the channel
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
-		std::string	modeFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
-		send(clientSocket, modeFail.c_str(), modeFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	Channel* channel = channelIt->second;
 	std::vector<int>& members = (channelIt->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), clientSocket);
 	if (pos == members.end()) {
-		std::string	modeFail = "localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
-		send(clientSocket, modeFail.c_str(), modeFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	int targetSocket = 0;
 	bool status = true;
@@ -125,9 +119,7 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 		members = &((channels[channelName])->getClients());
 		memberIt = std::find(members->begin(), members->end(), clientSocket);
 		if (memberIt == members->end()) {
-			std::string	leaveFail = "localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
-			send(clientSocket, leaveFail.c_str(), leaveFail.size(), 0);
-			return ;
+			return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 		}
 		itClient = clients.begin();
 		while (itClient != clients.end()) {
@@ -149,9 +141,7 @@ void	handleLeaveCommand(int clientSocket, const std::string& channelName, client
 		}
 	}
 	else {
-		std::string	leaveFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
-		send(clientSocket, leaveFail.c_str(), leaveFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Send PART message back to the client to confirm leaving
 	std::string leaveConfirm = ":" + nickname + "!~user@host PART :" + channelName + "\r\n";
@@ -172,9 +162,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
 		if ((it->second)->getSocket() == clientSocket) {
 			if ((it->second)->getOperator(channelName) == false) {
-				std::string	kickFail = "localhost 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
-				send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-				return ;
+				return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
 			}
 			nickname = (it->second)->getNickname();
 			break;
@@ -183,9 +171,7 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 	// Check if the channel exists
 	channelMap::iterator itChannel = channels.find(channelName);
 	if (itChannel == channels.end()) {
-		std::string	kickFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
-		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Find the user to kick based on their nickname
 	int userSocket;
@@ -198,17 +184,13 @@ void handleKickCommand(int clientSocket, const std::string& channelName, const s
 		++it;
 	}
 	if (it == clients.end()) {
-		std::string	kickFail = "localhost 442 " + userToKick + " " + channelName + " :Client just doesn't exist\r\n";
-		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return ;
+		return ERRCLIENTUNKNOWN(userToKick, channelName, clientSocket);
 	}
 	// Check if the user is in the channel
 	std::vector<int>& members = (itChannel->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
 	if (pos == members.end()) {
-		std::string	kickFail = "localhost 442 " + userToKick + " " + channelName + " :You're not on that channel\r\n";
-		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Set operator privilege to false for person getting kicked out
 	(it->second)->setOperator(channelName, false);
@@ -241,13 +223,10 @@ void	broadcastToChannel(int senderSocket, const std::string& channelName, const 
 	// Find the channel in the map
 	channelMap::iterator itChannel = channels.find(channelName);
 	if (itChannel == channels.end()) {
-		std::string fullMessage = nickname + " " + channelName + " :" + "No such channel" + "\r\n";
-		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, senderSocket);
 	}
 	// Construct the message using the sender's nickname.
 	std::string fullMessage = ":" + nickname + "!~user@host PRIVMSG " + channelName + " :" + message + "\r\n";
-
 	// Broadcast the message to all channel members except the sender.
 	std::vector<int>& members = (itChannel->second)->getClients();
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
@@ -259,10 +238,10 @@ void	broadcastToChannel(int senderSocket, const std::string& channelName, const 
 
 void	sendDM(int senderSocket, const std::string& target, const std::string& message, clientMap& clients) {
 	// Check if the target exists
- 	std::map<std::string, Client*>::iterator it = clients.find(target);
 	int	targetSocket;
+ 	std::map<std::string, Client*>::iterator it = clients.find(target);
 	if (it == clients.end()) {
-		std::string fullMessage = target + " : There was no such nickname\r\n";
+		std::string fullMessage = target + "  :Client just doesn't exist\r\n";
 		send(senderSocket, fullMessage.c_str(), fullMessage.length(), 0);
 		return ;
 	}
@@ -283,11 +262,21 @@ void	sendDM(int senderSocket, const std::string& target, const std::string& mess
 }
 
 void handleTopicCommand(int clientSocket, const std::string& channelName, const std::string& newTopic, clientMap& clients, channelMap& channels) {
+	// Get nickname of the client
+	std::string nickname;
+	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
+		if ((it->second)->getSocket() == clientSocket) {
+			if ((it->second)->getOperator(channelName) == false) {
+				return ERRNOTOPERATOR(nickname, channelName, clientSocket);
+			}
+			nickname = (it->second)->getNickname();
+			break;
+		}
+	}
 	// Check if the channel exists
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
-		std::cerr << "No such channel: " << channelName << std::endl;
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Check if a new topic is provided
 	if (!newTopic.empty()) {
@@ -301,15 +290,7 @@ void handleTopicCommand(int clientSocket, const std::string& channelName, const 
 			}
 		}
 		if (!clientInChannel) {
-			std::cerr << "Client not in channel: " << channelName << std::endl;
-			return ;
-		}
-		std::string nickname;
-		for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-			if ((it->second)->getSocket() == clientSocket) {
-				nickname = (it->second)->getNickname();
-				break;
-			}
+			return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
 		}
 		std::string topicMessage = ":" + nickname + "!~user@host TOPIC " + channelName + " :" + newTopic + "\r\n";
 		for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
@@ -317,13 +298,11 @@ void handleTopicCommand(int clientSocket, const std::string& channelName, const 
 		}
 		(channelIt->second)->setTopic(newTopic);
 	} else {
-		// If no new topic is provided, send the current topic back to the client
-		if ((channelIt->second)->getTopic().empty()) {
-			std::string noTopicMessage = "There is no topic set for " + channelName + "\r\n";
-			send(clientSocket, noTopicMessage.c_str(), noTopicMessage.length(), 0);
+		const std::string&	topic = (channelIt->second)->getTopic();
+		if (topic.empty()) {
+			RPL_NOTOPIC(nickname, channelName, clientSocket);
 		} else {
-			std::string currentTopicMessage = "Current topic for " + channelName + " is: " + (channelIt->second)->getTopic() + "\r\n";
-			send(clientSocket, currentTopicMessage.c_str(), currentTopicMessage.length(), 0);
+			RPL_TOPIC(nickname, channelName, topic, clientSocket);
 		}
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 14:55:06 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 17:32:21 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 20:10:43 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,7 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, const s
 	}
 	// Check if channel format is correct
 	if (channelName[0] != '#') {
-		std::string	kickFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
-		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Check if the channel exists, create it if not
 	channelMap::iterator itChannel = channels.find(channelName);
@@ -38,21 +36,15 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, const s
 	}
 	else {
 		if (!((itChannel->second)->getKey().empty()) && key != (itChannel->second)->getKey()) {
-			std::string joinFail = ":localhost 475 " + nickname + " " + channelName + " :Cannot join channel (+k) - incorrect key\r\n";
-			send(clientSocket, joinFail.c_str(), joinFail.size(), 0);
-			return ;
+			return ERRINCORRECTKEY(nickname, channelName, clientSocket);
 		}
 		if ((itChannel->second)->getUserLimit() != -1 && (itChannel->second)->getUserLimit() < (itChannel->second)->getUsers())
 		{
-			std::string joinFail = ":localhost 471 " + nickname + " " + channelName + " :Cannot join channel (+l)\r\n";
-			send(clientSocket, joinFail.c_str(), joinFail.size(), 0);
-			return ;
+			return ERRUSERLIMIT(nickname, channelName, clientSocket);
 		}
 		std::cout << (itClient->second)->getIsInvited(channelName) << std::endl;
 		if ((itChannel->second)->getInviteOnly() && !(itClient->second)->getIsInvited(channelName)) {
-			std::string joinFail = ":localhost 473 " + nickname + " " + channelName + " :Cannot join channel (+i)\r\n";
-			send(clientSocket, joinFail.c_str(), joinFail.size(), 0);
-			return ;
+			return ERRINVITEONLY(nickname, channelName, clientSocket);
 		}
 		(itChannel->second)->addClient(clientSocket);
 		(itClient->second)->addChannel(channelName, false);
@@ -68,6 +60,16 @@ void	handleJoinCommand(int clientSocket, const std::string& channelName, const s
 			send(*memberIt, joinConfirm.c_str(), joinConfirm.size(), 0);
 		}
 	}
+	std::string	topic = "";
+	if (itChannel != channels.end()) {
+		topic = (itChannel->second)->getTopic();
+	}
+	if (topic.empty()) {
+		RPL_NOTOPIC(nickname, channelName, clientSocket);
+	}
+	else {
+		RPL_TOPIC(nickname, channelName, topic, clientSocket);
+	}
 }
 
 void	handleInviteCommand(int clientSocket, const std::string& channelName, const std::string& guest, clientMap& clients, channelMap& channels) {
@@ -77,9 +79,7 @@ void	handleInviteCommand(int clientSocket, const std::string& channelName, const
 	while (it != clients.end()) {
 		if ((it->second)->getSocket() == clientSocket) {
 			if ((it->second)->getOperator(channelName) == false) {
-				std::string	inviteFail = "localhost 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
-				send(clientSocket, inviteFail.c_str(), inviteFail.size(), 0);
-				return ;
+				return ERRNOTOPERATOR(nickname, channelName, clientSocket);
 			}
 			nickname = (it->second)->getNickname();
 			break;
@@ -87,16 +87,12 @@ void	handleInviteCommand(int clientSocket, const std::string& channelName, const
 		++it;
 	}
 	if (it == clients.end()) {
-		std::string	kickFail = "localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
-		send(clientSocket, kickFail.c_str(), kickFail.size(), 0);
-		return ;
+		return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Check if the channel exists
 	channelMap::iterator itChannel = channels.find(channelName);
 	if (itChannel == channels.end()) {
-		std::string	inviteFail = "localhost 403 " + nickname + " " + channelName + " :No such channel\r\n";
-		send(clientSocket, inviteFail.c_str(), inviteFail.size(), 0);
-		return ;
+		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
 	// Find the user to kick based on their nickname
 	int userSocket;
@@ -109,25 +105,17 @@ void	handleInviteCommand(int clientSocket, const std::string& channelName, const
 		++it;
 	}
 	if (it == clients.end()) {
-		std::string	inviteFail = "localhost 442 " + guest + " " + channelName + " :Client just doesn't exist\r\n";
-		send(clientSocket, inviteFail.c_str(), inviteFail.size(), 0);
-		return ;
+		return ERRCLIENTUNKNOWN(guest, channelName, clientSocket);
 	}
 	// Check if the user is in the channel
 	std::vector<int>& members = (itChannel->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
 	if (pos != members.end()) {
-		std::string	inviteFail = "localhost 443 " + nickname + " " + guest + " " + channelName + ":is already on channel\r\n";
-		send(clientSocket, inviteFail.c_str(), inviteFail.size(), 0);
-		return ;
+		return ERRINCHANNEL(nickname, guest, channelName, clientSocket);
 	}
-	std::string	inviteMessage = ":localhost 341 " + nickname + " " + guest + " " + channelName + "\r\n";
-	send(clientSocket, inviteMessage.c_str(), inviteMessage.length(), 0);
-	inviteMessage = ":" + nickname + "!~user@host INVITE :" + channelName + " " + guest + "\r\n";
-	send(userSocket, inviteMessage.c_str(), inviteMessage.length(), 0);
-	std::cout << "The client got invited" << std::endl;
+	RPL_INVITING(nickname, guest, channelName, clientSocket);
+	INVITE_MESSAGE(nickname, guest, channelName, userSocket);
 	if ((itChannel->second)->getInviteOnly() == true) {
-		std::cout << "We just set the invite to true" << std::endl;
 		(it->second)->setInvite(channelName, true);
 	}
 }

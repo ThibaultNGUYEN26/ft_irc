@@ -6,15 +6,13 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/27 20:08:34 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/28 20:02:39 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <Channel.hpp>
 
-Channel::Channel(std::string channelName) : _channelName(channelName), _inviteOnly(false), _userLimit(-1) {
-	_key = "";
-	std::cout << "key : *" << _key << "*" << std::endl;
+Channel::Channel(std::string channelName) : _channelName(channelName), _topic(""), _inviteOnly(false), _key(""), _userLimit(-1) {
 }
 
 Channel::~Channel() {}
