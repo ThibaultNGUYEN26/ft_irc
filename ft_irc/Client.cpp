@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:05 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/27 21:34:55 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:27:35 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,12 @@ bool	Client::getIsInvited(const std::string& channelName) const {
 	return false;
 }
 
-const bool	&Client::getOperator(const std::string& channelName) const {
-	return (_channelOperator.find(channelName))->second;
+bool	Client::getOperator(const std::string& channelName) const {
+	std::map<std::string, bool>::const_iterator	it = _channelOperator.find(channelName);
+	if (it != _channelOperator.end()) {
+		return it->second;
+	}
+	return false;
 }
 
 void	Client::setInvite(const std::string& channelName, bool status) {

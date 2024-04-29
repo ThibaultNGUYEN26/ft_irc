@@ -4,7 +4,7 @@
 ## Netcat
 # nc irc.dal.net <port>
 NICK <nickname>
-USER <username> <realname> :Whatever you want
+USER <username> <realname> <server_name> :Whatever you want
 
 PING :<params>
 

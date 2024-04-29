@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:36:28 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:30:00 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 	// Check if channel format is correct
 	if (channelName[0] != '#') {
 		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
+	}
+	else if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, nickname, "JOIN");
 	}
 	// Check if the channel exists, create it if not
 	channelMap::iterator itChannel = channels.find(channelName);
@@ -78,17 +81,28 @@ void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& cha
 	std::istringstream iss(command);
 	std::string	channelsToJoin, keys, channelName, key;
 	std::getline(iss, channelsToJoin, ' ');
+	if (channelsToJoin.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "JOIN");
+	}
 	std::getline(iss, keys, '\r');
 	std::cout << keys << std::endl;
 	std::istringstream ssChannel(channelsToJoin), ssKey(keys);
 	while (std::getline(ssChannel, channelName, ',')) {
 		if (channelName[channelName.length() - 1] == '\n') {
-		channelName = channelName.substr(0, channelName.length() - 2);
+			if (channelName[channelName.length() - 2] == '\r') {
+				channelName.erase(channelName.length() - 2, 2);;
+			}
+			else {
+				channelName.erase(channelName.length() - 1);;
+			}
 		}
 		else {
 			std::getline(ssKey, key, ',');
 		}
-		std::cout << "Name *" << channelName << "*, key *" << key << "*\n"; 
+		std::cout << "Name *" << channelName << "*, key *" << key << "*\n";
+		if (channelName.empty()) {
+			return ERRMOREPARAMS(clientSocket, "", "JOIN");
+		}
 		executeJoinCommand(clientSocket, channelName, key, clients, channels);
 	}
 }

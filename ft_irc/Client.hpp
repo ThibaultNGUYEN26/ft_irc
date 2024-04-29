@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 15:30:01 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/27 21:34:49 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:27:46 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ public:
 	const std::string	&getUsername() const;
 	const std::string	&getNickname() const;
 	const int			&getSocket() const;
-	const bool			&getOperator(const std::string& channelName) const;
+	bool				getOperator(const std::string& channelName) const;
 	bool				getIsInvited(const std::string& channelName) const;
 	void				setOperator(const std::string& channelName, bool status);
 	void				setInvite(const std::string& channelName, bool status);

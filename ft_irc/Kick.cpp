@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:23:25 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:45:48 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:30:36 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,10 @@ void	executeKickCommand(int clientSocket, const std::string& channelName, const 
 	// Check if the person kicking has operator privilege
 	clientMap::iterator	itClient = getClientIterator(clientSocket, clients);
 	std::string	nickname = (itClient->second)->getNickname();
+	std::cout << "*" << channelName << "*" << std::endl;
+	if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, nickname, "KICK");
+	}
 	if ((itClient->second)->getOperator(channelName) == false) {
 		return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
 	}
@@ -33,7 +37,7 @@ void	executeKickCommand(int clientSocket, const std::string& channelName, const 
 	std::vector<int>& members = (itChannel->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), userSocket);
 	if (pos == members.end()) {
-		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
+		return ERRNOTINCHANNEL(nickname, userToKick, channelName, clientSocket);
 	}
 	// Set operator privilege to false for person getting kicked out
 	(itClient->second)->setOperator(channelName, false);

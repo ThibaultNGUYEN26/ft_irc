@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:53:10 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 16:40:12 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,6 +170,14 @@ void Ircserv::runServer() {
 						}
 						else if (command.find("MODE") == 0) {
 							handleModeCommand(command, _clients, _channels, _server.fds[i].fd);
+						}
+						else {
+							std::istringstream iss(command);
+							std::string cmd;
+							std::getline(iss, cmd, ' ');
+							checkNC(cmd);
+							std::string nickname = (getClientIterator(_server.fds[i].fd, _clients)->second)->getNickname();
+							ERRUNKNOWNCOMMAND(_server.fds[i].fd, nickname, cmd);
 						}
 					} else {
 						// Connection closed by client or error reading

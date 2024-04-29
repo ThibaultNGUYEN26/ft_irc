@@ -6,21 +6,22 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:28:16 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:30:30 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 18:32:41 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Ircserv.hpp"
 
 bool	registerClient(int& clientSocket, const std::string& _password, clientMap& clients) {
-	bool		gotEnd = false, gotPassword = false;
+	bool		gotEnd = false, gotPassword = false, gotNick = false;
+	std::string	receivedPassword;
 	std::string	receivedNickname;
 	std::string	receivedUsername;
 
 	while (!gotEnd)
 	{
 		char buffer[1024];
-		
+
 		memset(buffer, 0, sizeof(buffer));
 		ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
 		if (bytesRead <= 0) { 
@@ -32,7 +33,7 @@ bool	registerClient(int& clientSocket, const std::string& _password, clientMap& 
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
 		std::string	cmd;
-		std::cout << buffer << std::endl;
+		std::cout << receivedCommand << std::endl;
 		while (std::getline(iss, cmd, ' ')) {
 			if (cmd == "CAP") {
 				std::string	capParam;
@@ -55,8 +56,8 @@ bool	registerClient(int& clientSocket, const std::string& _password, clientMap& 
 				}
 			}
 			else if (cmd == "PASS") {
-				std::string	receivedPassword;
 				std::getline(iss, receivedPassword, '\r');
+				checkNC(receivedPassword);
 				if (receivedPassword != _password) {
 					ERRINCORRECTPASSWORD(clientSocket);
 					return false;
@@ -65,17 +66,35 @@ bool	registerClient(int& clientSocket, const std::string& _password, clientMap& 
 			}
 			else if (cmd == "NICK") {
 				std::getline(iss, receivedNickname, '\r');
+				checkNC(receivedNickname);
 				if (!isValidNickname(receivedNickname, clients, clientSocket)) {
 					return false;
 				}
+				else if (receivedNickname.empty()) {
+					ERRMOREPARAMS(clientSocket, receivedNickname, cmd);
+					return false;
+				}
+				gotNick = true;
 			}
 			else if (cmd == "USER") {
 				std::getline(iss, receivedUsername, ' ');
+				if (checkNC(receivedUsername) == true) {
+					gotEnd = true;
+				}
+				std::cout << "*" << receivedUsername << "*" << std::endl;
+				if (receivedUsername.empty()) {
+					ERRMOREPARAMS(clientSocket, receivedNickname, cmd);
+					return false;
+				}
+			}
+			else {
+				ERRUNKNOWNCOMMAND(clientSocket, "", cmd);
 			}
 			std::getline(iss, cmd, '\n');
 		}
 	}
-	if (!gotPassword) {
+	if (!gotPassword || !gotNick) {
+		ERRMOREPARAMS(clientSocket, "", "Missing NICK or PASS commands");
 		return false;
 	}
 	WELCOME_001(receivedNickname, clientSocket);

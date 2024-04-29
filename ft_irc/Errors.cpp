@@ -6,11 +6,21 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:13:58 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 22:01:16 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/29 16:33:15 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "IrcUtils.hpp"
+
+void	ERRUNKNOWNCOMMAND(const int& clientSocket, const std::string& nickname, const std::string& cmd) {
+	std::string	_fail = ":localhost 441 " + nickname + " " + cmd + " :Unknown command\r\n";
+	send(clientSocket, _fail.c_str(), _fail.size(), 0);
+}
+
+void	ERRMOREPARAMS(const int& clientSocket, const std::string& nickname, const std::string& cmd) {
+	std::string	_fail = ":localhost 461 " + nickname + " " + cmd + " : Not enough parameters\r\n";
+	send(clientSocket, _fail.c_str(), _fail.size(), 0);
+}
 
 void	ERRINCORRECTPASSWORD(const int& clientSocket) {
 	std::string	_fail = ":localhost 464  :Password incorrect\r\n";
@@ -29,6 +39,11 @@ void	ERRNOSUCHCHANNEL(const std::string& nickname, const std::string& channelNam
 
 void	ERRNOTONCHANNEL(const std::string& nickname, const std::string& channelName, const int& clientSocket) {
 	std::string	_fail = "localhost 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
+	send(clientSocket, _fail.c_str(), _fail.size(), 0);
+}
+
+void	ERRNOTINCHANNEL(const std::string& nickname, const std::string& other, const std::string& channelName, const int& clientSocket) {
+	std::string	_fail = "localhost 441 " + nickname + " " + other + " " + channelName + " :They're not on that channel\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
