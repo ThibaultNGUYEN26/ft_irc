@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:24:38 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:47:56 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/30 16:01:48 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,12 +52,20 @@ void executeTopicCommand(int clientSocket, const std::string& channelName, const
 }
 
 void	handleTopicCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
+	command = command.substr(6, command.length());
 	std::istringstream iss(command);
 	std::string channelName, topic;
 	std::getline(iss, channelName, ' ');
-	std::getline(iss, channelName, ' ');
+	checkNC(channelName);
+	if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "TOPIC");
+	}
 	std::getline(iss, topic, ':');
 	std::getline(iss, topic, '\r');
+	checkNC(topic);
+	if (topic.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "TOPIC");
+	}
 	std::cout << "Topic : " << topic << " in Channel : " << channelName << std::endl;
 	executeTopicCommand(clientSocket, channelName, topic, clients, channels);
 }

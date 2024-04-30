@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:52:14 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/30 17:21:22 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,15 +80,22 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 }
 
 void	handleModeCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
+	command = command.substr(5, command.length());
 	std::istringstream iss(command);
 	std::string channelName, modeCommand, param;
 	std::getline(iss, channelName, ' ');
-	std::getline(iss, channelName, ' ');
+	checkNC(channelName);
+	if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "MODE");
+	}
+	
 	if (command.length() - 6 - channelName.length() != 4) {
 		std::getline(iss, modeCommand, ' ');
 		std::getline(iss, param, '\r');
+		std::cout << "1 Mode : " << modeCommand << ", param : " << param << std::endl;
 	} else {
 		std::getline(iss, modeCommand, '\r');
+		std::cout << "2 Mode : " << modeCommand << ", param : " << param << std::endl;
 	}
 	size_t startModePos = modeCommand.find_first_not_of(" ");
 	size_t startParamPos = param.find_first_not_of(" ");

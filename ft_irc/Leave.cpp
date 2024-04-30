@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:22:46 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:43:02 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/30 15:49:09 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,14 @@ void	executeLeaveCommand(int clientSocket, const std::string& channelName, clien
 }
 
 void	handleLeaveCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
+	command = command.substr(5, command.length());
 	std::istringstream iss(command);
 	std::string channelName;
-	std::getline(iss, channelName, ' ');
 	std::getline(iss, channelName, '\r');
+	checkNC(channelName);
+	std::cout << "channelName *" << channelName << "*\n";
+	if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "PART");
+	}
 	executeLeaveCommand(clientSocket, channelName, clients, channels);
 }

@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:00 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 21:50:43 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/30 15:40:14 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,18 @@ void	executeInviteCommand(int clientSocket, const std::string& channelName, cons
 }
 
 void	handleInviteCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
+	command = command.substr(7, command.length());
 	std::istringstream iss(command);
 	std::string	nickname, channelName;
 	std::getline(iss, nickname, ' ');
-	std::getline(iss, nickname, ' ');
+	if (checkNC(nickname) || nickname.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "INVITE");
+	}
 	std::getline(iss, channelName, '\r');
+	checkNC(channelName);
+	if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "INVITE");
+	}
 	std::cout << "Channel: " << channelName << " nickname: " << nickname << std::endl;
 	executeInviteCommand(clientSocket, channelName, nickname, clients, channels);
 }
