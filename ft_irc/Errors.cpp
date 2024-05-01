@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:13:58 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/29 16:33:15 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/04/30 21:23:20 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,8 @@ void	INVITE_MESSAGE(const std::string& nickname, const std::string& guest, const
 }
 
 void	RPL_NOTOPIC(const std::string& nickname, const std::string& channelName, const int& clientSocket) {
-	std::string	topicMessage = ":localhost 331 " + nickname + " " + channelName + " :No topic is set\r\n";
+	(void)nickname;
+	std::string	topicMessage = ":localhost 331 " + channelName + " :No topic is set\r\n";
 	send(clientSocket, topicMessage.c_str(), topicMessage.length(), 0);
 }
 

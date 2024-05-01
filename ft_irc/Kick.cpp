@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:23:25 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/30 15:23:16 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 15:44:06 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void	executeKickCommand(int clientSocket, const std::string& channelName, const 
 		return ERRNOTINCHANNEL(nickname, userToKick, channelName, clientSocket);
 	}
 	// Set operator privilege to false for person getting kicked out
-	(itClient->second)->setOperator(channelName, false);
+	(getClientIterator(userSocket, clients)->second)->setOperator(channelName, false);
 	// Notify the kicked user and all channel members
 	std::string kickMessage = ":" + nickname + "!~user@host KICK " + channelName + " " + userToKick + " :" + (reason.empty() ? "No reason" : reason) + "\r\n";
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
@@ -61,12 +61,10 @@ void	handleKickCommand(std::string& command, clientMap& clients, channelMap& cha
 	std::istringstream iss(command);
 	std::string channelName, userToKick, reason;
 	std::getline(iss, channelName, ' ');
-	std::cout << "Name *" << channelName << "*\n";
 	if (checkNC(channelName) || channelName.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "KICK");
 	}
 	std::getline(iss, userToKick, ' ');
-	std::cout << "userToKick *" << userToKick << std::endl;
 	if (userToKick.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "KICK");
 	}
@@ -74,12 +72,10 @@ void	handleKickCommand(std::string& command, clientMap& clients, channelMap& cha
 		std::getline(iss, reason, ':');
 		std::getline(iss, reason, '\r');
 		checkNC(reason);
-		// Trim any leading spaces from the reason
 		size_t startPos = reason.find_first_not_of(" ");
 		if (startPos != std::string::npos) {
 			reason = reason.substr(startPos);
 		}
-		std::cout << "Reason *" << reason << "*\n";
 	}
 	executeKickCommand(clientSocket, channelName, userToKick, reason, clients, channels);
 }

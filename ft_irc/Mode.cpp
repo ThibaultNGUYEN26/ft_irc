@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/30 17:21:22 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 14:08:54 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,18 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 					break;
 				case 'k':
 					if (status) {
+						if (parameter.empty()) {
+							return ERRMOREPARAMS(clientSocket, "", "MODE");
+						}
 						(channelIt->second)->setKey(parameter);
 					} else {
 						(channelIt->second)->removeKey();
 					}
 					break;
 				case 'o':
+					if (parameter.empty()) {
+						return ERRMOREPARAMS(clientSocket, "", "MODE");
+					}
 					targetSocket = getUserSocket(parameter, clients);
 					if (targetSocket != -1) {
 						(channelIt->second)->setOperator(clientSocket, targetSocket, status, clients, channelName);
@@ -63,6 +69,9 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 					break;
 				case 'l':
 					if (status) {
+						if (parameter.empty()) {
+							return ERRMOREPARAMS(clientSocket, "", "MODE");
+						}
 						int limit = atoi(parameter.c_str());
 						(channelIt->second)->setUserLimit(limit);
 					} else {
@@ -88,15 +97,14 @@ void	handleModeCommand(std::string& command, clientMap& clients, channelMap& cha
 	if (channelName.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "MODE");
 	}
-	
+	std::cout << "Channel Name: *" << channelName << "*" << std::endl;
 	if (command.length() - 6 - channelName.length() != 4) {
 		std::getline(iss, modeCommand, ' ');
 		std::getline(iss, param, '\r');
-		std::cout << "1 Mode : " << modeCommand << ", param : " << param << std::endl;
 	} else {
 		std::getline(iss, modeCommand, '\r');
-		std::cout << "2 Mode : " << modeCommand << ", param : " << param << std::endl;
 	}
+	std::cout << "Before : Mode: *" << modeCommand << "* Param: *" << param << "*" << std::endl;
 	size_t startModePos = modeCommand.find_first_not_of(" ");
 	size_t startParamPos = param.find_first_not_of(" ");
 	if (startModePos != std::string::npos) {
@@ -105,6 +113,11 @@ void	handleModeCommand(std::string& command, clientMap& clients, channelMap& cha
 	if (startParamPos != std::string::npos) {
 		param = param.substr(startParamPos);
 	}
-	std::cout << "Channel: " << channelName << " Mode: " << modeCommand << " Param: " << param << std::endl;
+	checkNC(modeCommand);
+	checkNC(param);
+	if (modeCommand.empty()) {
+		return ERRMOREPARAMS(clientSocket, "", "MODE");
+	}
+	std::cout << "After : Mode: *" << modeCommand << "* Param: *" << param << "*" << std::endl;
 	executeModeCommand(clientSocket, channelName, modeCommand, param, clients, channels);
 }
