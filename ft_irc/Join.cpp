@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/29 18:30:00 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 17:09:46 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,21 +14,14 @@
 
 void	executeJoinCommand(int clientSocket, const std::string& channelName, const std::string& key, clientMap& clients, channelMap& channels) {
 	// Get client nickname
-	std::string nickname;
-	clientMap::iterator itClient = clients.begin();
-	while (itClient != clients.end()) {
-		if ((itClient->second)->getSocket() == clientSocket) {
-			nickname = (itClient->second)->getNickname();
-			break;
-		}
-		++itClient;
-	}
+	clientMap::iterator	itClient = getClientIterator(clientSocket, clients);
+	std::string	nickname = (itClient->second)->getNickname();
 	// Check if channel format is correct
+	if (channelName.empty()) {
+		return ERRMOREPARAMS(clientSocket, nickname, "JOIN");
+	}
 	if (channelName[0] != '#') {
 		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
-	}
-	else if (channelName.empty()) {
-		return ERRMOREPARAMS(clientSocket, nickname, "JOIN");
 	}
 	// Check if the channel exists, create it if not
 	channelMap::iterator itChannel = channels.find(channelName);
@@ -36,13 +29,15 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 		channels[channelName] = new Channel(channelName);
 		(channels[channelName])->addClient(clientSocket);
 		(itClient->second)->addChannel(channelName, true);
+		channelMap::iterator itChannel = channels.find(channelName);
+		std::cout << "current users : " << (itChannel->second)->getUsers() << std::endl;
 	}
 	else {
 		if (!((itChannel->second)->getKey().empty()) && key != (itChannel->second)->getKey()) {
 			return ERRINCORRECTKEY(nickname, channelName, clientSocket);
 		}
-		if ((itChannel->second)->getUserLimit() != -1 && (itChannel->second)->getUserLimit() < (itChannel->second)->getUsers())
-		{
+		std::cout << "limit of channel : " << (itChannel->second)->getUserLimit() << " and current users : " << (itChannel->second)->getUsers() << std::endl;
+		if ((itChannel->second)->getUserLimit() != -1 && (itChannel->second)->getUserLimit() <= (itChannel->second)->getUsers()) {
 			return ERRUSERLIMIT(nickname, channelName, clientSocket);
 		}
 		std::cout << (itClient->second)->getIsInvited(channelName) << std::endl;

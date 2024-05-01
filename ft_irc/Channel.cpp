@@ -6,13 +6,13 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/28 20:02:39 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 17:04:15 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <Channel.hpp>
 
-Channel::Channel(std::string channelName) : _channelName(channelName), _topic(""), _inviteOnly(false), _key(""), _userLimit(-1) {
+Channel::Channel(std::string channelName) : _channelName(channelName), _topic(""), _inviteOnly(false), _key(""), _users(0), _userLimit(-1) {
 }
 
 Channel::~Channel() {}
@@ -47,31 +47,11 @@ const bool&		Channel::getInviteOnly() const {
 
 void	Channel::addClient(const int& clientSocket) {
 	_clients.push_back(clientSocket);
-	_users++;
+	_users = _users + 1;
 }
 
 void	Channel::setTopic(const std::string& topic) {
 	_topic = topic;
-}
-
-void	Channel::setOperator(int clientSocket, int targetSocket, bool status, clientMap clients, const std::string& channelName) {
-	for (clientMap::iterator it = clients.begin(); it != clients.end(); it++) {
-		if (clientSocket == (it->second)->getSocket()) {
-			if ((it->second)->getOperator(channelName) == false)
-				return ;
-			if (clientSocket == targetSocket) {
-				(it->second)->setOperator(channelName, status);
-			}
-			else {
-				for (clientMap::iterator itTarget = clients.begin(); itTarget != clients.end(); itTarget++) {
-					if (targetSocket == (itTarget->second)->getSocket()) {
-						(itTarget->second)->setOperator(channelName, status);
-					}
-				}
-			}
-			break;
-		}
-	}
 }
 
 void	Channel::setInviteOnly(bool status) {

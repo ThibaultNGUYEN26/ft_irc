@@ -6,26 +6,28 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 14:08:54 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 16:28:35 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Ircserv.hpp"
 
 void executeModeCommand(int clientSocket, const std::string& channelName, const std::string& modeSequence, const std::string& parameter, clientMap& clients, channelMap& channels) {
+	// Check if MODE is well for channels
 	if (channelName[0] != '#') {
 		return ;
 	}
 	// Nickname of the client
 	clientMap::iterator	itClient = getClientIterator(clientSocket, clients);
 	std::string	nickname = (itClient->second)->getNickname();
-	if ((itClient->second)->getOperator(channelName) == false) {
-		return ERRNOTOPERATOR(nickname, channelName, clientSocket);
-	}
 	// Look for the channel
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
 		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
+	}
+	// Check if the client is an operator
+	if ((itClient->second)->getOperator(channelName) == false) {
+		return ERRNOTOPERATOR(nickname, channelName, clientSocket);
 	}
 	std::vector<int>& members = (channelIt->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), clientSocket);
@@ -64,7 +66,7 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 					}
 					targetSocket = getUserSocket(parameter, clients);
 					if (targetSocket != -1) {
-						(channelIt->second)->setOperator(clientSocket, targetSocket, status, clients, channelName);
+						(getClientIterator(targetSocket, clients)->second)->setOperator(channelName, status);
 					}
 					break;
 				case 'l':

@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:49:07 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/27 19:01:23 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 16:26:48 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ public:
 	const bool&			getInviteOnly() const;
 
 	void	setTopic(const std::string& topic);
-	void	setOperator(int clientSocket, int targetSocket, bool status, clientMap clients, const std::string& channelName);
 	void	setInviteOnly(bool status);
 	void	setTopicControl(bool status);
 	void	setKey(const std::string& newKey);
