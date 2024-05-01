@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 17:26:08 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 18:05:44 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 	}
 	// Check if the client is an operator
 	if ((itClient->second)->getOperator(channelName) == false) {
+		std::cout << "operator pri in mode is false " << std::endl;
 		return ERRNOTOPERATOR(nickname, channelName, clientSocket);
 	}
 	std::vector<int>& members = (channelIt->second)->getClients();
@@ -96,32 +97,22 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 void	handleModeCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
 	command = command.substr(5, command.length());
 	std::istringstream iss(command);
-	std::string channelName, modeCommand, param;
+	std::string channelName, modeCommand;
+	std::string	param = "";
 	std::getline(iss, channelName, ' ');
 	checkNC(channelName);
 	if (channelName.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "MODE");
 	}
 	std::cout << "Channel Name: *" << channelName << "*" << std::endl;
-	if (command.length() - 6 - channelName.length() != 4) {
-		std::getline(iss, modeCommand, ' ');
+	std::getline(iss, modeCommand, ' ');
+	if (!checkNC(modeCommand) && modeCommand[modeCommand.length() - 1] != '\r') {
 		std::getline(iss, param, '\r');
-	} else {
-		std::getline(iss, modeCommand, '\r');
+		checkNC(param);
+		std::cout << "key : " << param << std::endl;
 	}
-	std::cout << "Before : Mode: *" << modeCommand << "* Param: *" << param << "*" << std::endl;
-	size_t startModePos = modeCommand.find_first_not_of(" ");
-	size_t startParamPos = param.find_first_not_of(" ");
-	if (startModePos != std::string::npos) {
-		modeCommand = modeCommand.substr(startModePos);
-	}
-	if (startParamPos != std::string::npos) {
-		param = param.substr(startParamPos);
-	}
-	checkNC(modeCommand);
-	checkNC(param);
-	if (modeCommand.empty()) {
-		return ERRMOREPARAMS(clientSocket, "", "MODE");
+	else if (modeCommand[modeCommand.length() - 1] == '\r') {
+		modeCommand.erase(modeCommand.length() - 1);
 	}
 	std::cout << "After : Mode: *" << modeCommand << "* Param: *" << param << "*" << std::endl;
 	executeModeCommand(clientSocket, channelName, modeCommand, param, clients, channels);

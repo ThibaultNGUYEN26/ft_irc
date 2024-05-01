@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 17:09:46 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 18:07:10 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,7 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 		channels[channelName] = new Channel(channelName);
 		(channels[channelName])->addClient(clientSocket);
 		(itClient->second)->addChannel(channelName, true);
-		channelMap::iterator itChannel = channels.find(channelName);
-		std::cout << "current users : " << (itChannel->second)->getUsers() << std::endl;
+		std::cout << "operator pri in join: " << (itClient->second)->getOperator(channelName) << std::endl;
 	}
 	else {
 		if (!((itChannel->second)->getKey().empty()) && key != (itChannel->second)->getKey()) {
@@ -85,14 +84,15 @@ void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& cha
 	while (std::getline(ssChannel, channelName, ',')) {
 		if (channelName[channelName.length() - 1] == '\n') {
 			if (channelName[channelName.length() - 2] == '\r') {
-				channelName.erase(channelName.length() - 2, 2);;
+				channelName.erase(channelName.length() - 2, 2);
 			}
 			else {
-				channelName.erase(channelName.length() - 1);;
+				channelName.erase(channelName.length() - 1);
 			}
 		}
 		else {
 			std::getline(ssKey, key, ',');
+			checkNC(key);
 		}
 		std::cout << "Name *" << channelName << "*, key *" << key << "*\n";
 		if (channelName.empty()) {

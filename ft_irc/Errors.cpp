@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:13:58 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 16:06:49 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 17:46:01 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void	ERRINVITEONLY(const std::string& nickname, const std::string& channelName, 
 }
 
 void	RPL_INVITING(const std::string& nickname, const std::string& guest, const std::string& channelName, const int& clientSocket) {
-	std::string	inviteMessage = ":localhost 341 " + nickname + " " + guest + " " + channelName + ":You're invited to join the channel\r\n";
+	std::string	inviteMessage = ":localhost 341 " + nickname + " " + guest + " " + channelName + "\r\n";
 	send(clientSocket, inviteMessage.c_str(), inviteMessage.length(), 0);
 }
 
