@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 18:40:14 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 20:23:29 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ Ircserv::Ircserv(std::string &port, std::string &password) : _password(password)
 	if (ss_port.fail() || !ss_port.eof()) {
 		error("Wrong port format.");
 	}
-	if (_port < 0 || _port > 9999) {
+	if (_port < 1024 || _port > 5000) {
 		error("Port out of range.");
 	}
 }
@@ -49,7 +49,6 @@ void	Ircserv::initServer() {
 	_server.hints.sin_family = AF_INET;
 	_server.hints.sin_addr.s_addr = inet_addr("127.0.0.1");
 	_server.hints.sin_port = htons(_port);
-
 	// Opening, binding and listening on the socket
 	int enable = 1;
 	if (setsockopt(_server.sfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, (char *)&enable, sizeof(enable)))
