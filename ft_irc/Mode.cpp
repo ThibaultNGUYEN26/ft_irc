@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 16:28:35 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/01 17:26:08 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,9 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 					targetSocket = getUserSocket(parameter, clients);
 					if (targetSocket != -1) {
 						(getClientIterator(targetSocket, clients)->second)->setOperator(channelName, status);
+					}
+					else {
+						return ERRCLIENTUNKNOWN(parameter, channelName, clientSocket);
 					}
 					break;
 				case 'l':
