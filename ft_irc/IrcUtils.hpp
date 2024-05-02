@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:07:57 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/29 16:33:56 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 19:54:05 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,17 @@
 #define EOC "\033[1;1;0m"
 #define MAGENTA "\033[1;35m"
 
+#define HOSTNAME "Titi&Riri"
+
 typedef std::map<std::string, Client *> clientMap;
 typedef std::map<std::string, Channel *> channelMap;
 
 /* ERR AND RPL MESSAGES */
-void	ERRINCORRECTPASSWORD(const int& clientSocket);
 void	ERRUNKNOWNCOMMAND(const int& clientSocket, const std::string& nickname, const std::string& cmd);
 void	ERRMOREPARAMS(const int& clientSocket, const std::string& nickname, const std::string& cmd);
+void	ERRINCORRECTPASSWORD(const int& clientSocket);
+void	ERRNICKLENGTH(const std::string& nickname, const int& clientSocket);
+void	ERRNICKNAMEINUSE(const std::string& nickname, const int& clientSocket);
 void	WELCOME_001(const std::string& nickname, const int& clientSocket);
 void	ERRNOSUCHCHANNEL(const std::string& nickname, const std::string& channelName, const int& clientSocket);
 void	ERRNOTONCHANNEL(const std::string& nickname, const std::string& channelName, const int& 
@@ -42,9 +46,10 @@ void	ERRNOTOPERATOR(const std::string& nickname, const std::string& channelName,
 void	ERRINCHANNEL(const std::string& nickname, const std::string& guest, const std::string& channelName, const int& clientSocket);
 void	ERRINVITEONLY(const std::string& nickname, const std::string& channelName, const int& clientSocket);
 void	RPL_INVITING(const std::string& nickname, const std::string& guest, const std::string& channelName, const int& clientSocket);
-void	INVITE_MESSAGE(const std::string& nickname, const std::string& guest, const std::string& channelName, const int& clientSocket);
+void	INVITE_MESSAGE(const std::string& guest, const std::string& channelName, const int& clientSocket);
 void	RPL_NOTOPIC(const std::string& nickname, const std::string& channelName, const int& clientSocket);
 void	RPL_TOPIC(const std::string& nickname, const std::string& channelName, const std::string& topic, const int& clientSocket);
+void	RPL_NAMEREPLY(const std::string& nickname, const std::string& channelName, const int& clientSocket, channelMap& channels, clientMap& clients);
 
 /* UTILITY FUNCTIONS */
 bool	isValidNickname(const std::string& nickname, clientMap& clients, int& clientSocket);

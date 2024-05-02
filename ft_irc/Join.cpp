@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 18:07:10 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 19:54:55 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,8 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 	// Get client nickname
 	clientMap::iterator	itClient = getClientIterator(clientSocket, clients);
 	std::string	nickname = (itClient->second)->getNickname();
+	std::string username = (itClient->second)->getUsername();
 	// Check if channel format is correct
-	if (channelName.empty()) {
-		return ERRMOREPARAMS(clientSocket, nickname, "JOIN");
-	}
 	if (channelName[0] != '#') {
 		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
 	}
@@ -35,11 +33,15 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 		if (!((itChannel->second)->getKey().empty()) && key != (itChannel->second)->getKey()) {
 			return ERRINCORRECTKEY(nickname, channelName, clientSocket);
 		}
+		
 		std::cout << "limit of channel : " << (itChannel->second)->getUserLimit() << " and current users : " << (itChannel->second)->getUsers() << std::endl;
+
 		if ((itChannel->second)->getUserLimit() != -1 && (itChannel->second)->getUserLimit() <= (itChannel->second)->getUsers()) {
 			return ERRUSERLIMIT(nickname, channelName, clientSocket);
 		}
+		
 		std::cout << (itClient->second)->getIsInvited(channelName) << std::endl;
+		
 		if ((itChannel->second)->getInviteOnly() && !(itClient->second)->getIsInvited(channelName)) {
 			return ERRINVITEONLY(nickname, channelName, clientSocket);
 		}
@@ -48,7 +50,7 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 	}
 	// Notify all clients in the channel about the new member
 	// && Send JOIN message back to the client to confirm
-	std::string joinConfirm = ":" + nickname + "!~user@host JOIN :" + channelName + "\r\n";
+	std::string joinConfirm = ":" + nickname + "!~" + username + "@" + std::string(HOSTNAME) + " JOIN :" + channelName + "\r\n";
 	send(clientSocket, joinConfirm.c_str(), joinConfirm.size(), 0);
 	// Inform the other clients
 	std::vector<int>& members = (channels[channelName])->getClients();
@@ -67,6 +69,7 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 	else {
 		RPL_TOPIC(nickname, channelName, topic, clientSocket);
 	}
+	RPL_NAMEREPLY(nickname, channelName, clientSocket, channels, clients);
 }
 
 void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
@@ -96,8 +99,10 @@ void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& cha
 		}
 		std::cout << "Name *" << channelName << "*, key *" << key << "*\n";
 		if (channelName.empty()) {
-			return ERRMOREPARAMS(clientSocket, "", "JOIN");
+			ERRMOREPARAMS(clientSocket, "", "JOIN");
 		}
-		executeJoinCommand(clientSocket, channelName, key, clients, channels);
+		else {
+			executeJoinCommand(clientSocket, channelName, key, clients, channels);
+		}
 	}
 }

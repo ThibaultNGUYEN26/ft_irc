@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 20:25:19 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 19:15:43 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/02 20:35:22 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 
 bool isValidNickname(const std::string &nickname, clientMap &clients, int &clientSocket) {
 	if (nickname.length() > 9) {
-		std::string nickFail = ":localhost 432 " + nickname + " :Erroneus nickname\r\n";
-		send(clientSocket, nickFail.c_str(), nickFail.size(), 0);
+		ERRNICKLENGTH(nickname, clientSocket);
 		return false;
 	}
 	if (clients.find(nickname) != clients.end()) {
+		ERRNICKNAMEINUSE(nickname, clientSocket);
 		return false;
 	}
 	return true;
@@ -46,13 +46,14 @@ void broadcastToChannel(int senderSocket, const std::string &channelName, const 
 	// Get nickname of sender
 	clientMap::iterator itClient = getClientIterator(senderSocket, clients);
 	std::string nickname = (itClient->second)->getNickname();
+	std::string username = (itClient->second)->getUsername();
 	// Find the channel in the map
 	channelMap::iterator itChannel = channels.find(channelName);
 	if (itChannel == channels.end()) {
 		return ERRNOSUCHCHANNEL(nickname, channelName, senderSocket);
 	}
 	// Construct the message using the sender's nickname.
-	std::string fullMessage = ":" + nickname + "!~user@host PRIVMSG " + channelName + " :" + message + "\r\n";
+	std::string fullMessage = ":" + nickname + "!~" + username + "@" + std::string(HOSTNAME) + " PRIVMSG " + channelName + " :" + message + "\r\n";
 	// Broadcast the message to all channel members except the sender.
 	std::vector<int> &members = (itChannel->second)->getClients();
 	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
