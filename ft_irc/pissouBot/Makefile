@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+         #
+#    By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/01 19:30:09 by rchbouki          #+#    #+#              #
-#    Updated: 2024/05/01 20:16:37 by rchbouki         ###   ########.fr        #
+#    Updated: 2024/05/02 19:27:33 by thibnguy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@ OBJECTS		=	./bin
 INCLUDES	=	.
 
 SRCS		=	pissouBot.cpp \
+				pissouBotUtils.cpp \
 				main.cpp
 
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Ircserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 20:23:29 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 15:56:41 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void	Ircserv::initServer() {
 		error("Failure to open socket.");
 	}
 	_server.hints.sin_family = AF_INET;
-	_server.hints.sin_addr.s_addr = inet_addr("127.0.0.1");
+	_server.hints.sin_addr.s_addr = htonl(INADDR_ANY);
 	_server.hints.sin_port = htons(_port);
 	// Opening, binding and listening on the socket
 	int enable = 1;

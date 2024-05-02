@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pissouBot.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 19:32:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 20:53:16 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 20:13:45 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <unistd.h>
+#include <vector>
 
 #define EOC "\033[1;1;0m"
 #define MAGENTA "\033[1;35m"
@@ -46,3 +47,5 @@ private:
 	int			_port;
 	std::string _password;
 };
+
+void	ft_pissouBot(char *buffer, int targetSocket);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IrcUtils.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 20:25:19 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/29 17:52:46 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 19:15:43 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,11 @@ void sendDM(int senderSocket, const std::string &target, const std::string &mess
 	// Retrieve nickname of the sender
 	clientMap::iterator itClient = getClientIterator(senderSocket, clients);
 	std::string nickname = (itClient->second)->getNickname();
+	if (target == "pissouBot") {
+		std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
+		send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
+		return ;
+	}
 	std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
 	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
