@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:24:38 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/04/30 16:01:48 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 17:18:58 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ void executeTopicCommand(int clientSocket, const std::string& channelName, const
 	// Get nickname of the client
 	clientMap::iterator	itClient = getClientIterator(clientSocket, clients);
 	std::string	nickname = (itClient->second)->getNickname();
+	std::string	username = (itClient->second)->getUsername();
 	if ((itClient->second)->getOperator(channelName) == false) {
 		return ERRNOTOPERATOR(nickname, channelName, clientSocket);
 	}
@@ -36,7 +37,7 @@ void executeTopicCommand(int clientSocket, const std::string& channelName, const
 		if (!clientInChannel) {
 			return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
 		}
-		std::string topicMessage = ":" + nickname + "!~user@host TOPIC " + channelName + " :" + newTopic + "\r\n";
+		std::string topicMessage = ":" + nickname + "!~" + username + "@" + std::string(HOSTNAME) + " TOPIC " + channelName + " :" + newTopic + "\r\n";
 		for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
 			send(*it, topicMessage.c_str(), topicMessage.length(), 0);
 		}

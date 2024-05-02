@@ -6,7 +6,7 @@
 /*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 18:05:44 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/02 17:18:58 by rchbouki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 	// Nickname of the client
 	clientMap::iterator	itClient = getClientIterator(clientSocket, clients);
 	std::string	nickname = (itClient->second)->getNickname();
+	std::string	username = (itClient->second)->getUsername();
 	// Look for the channel
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
@@ -33,7 +34,7 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 	std::vector<int>& members = (channelIt->second)->getClients();
 	std::vector<int>::iterator pos = std::find(members.begin(), members.end(), clientSocket);
 	if (pos == members.end()) {
-		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
+		return ERRNOTONCHANNEL(nickname, channelName, clientSocket);
 	}
 	int targetSocket = 0;
 	bool status = true;
@@ -90,8 +91,12 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 		}
 	}
 	// Broadcast mode change to all channel members
-	std::string modeChangeMessage = ":" + nickname + " MODE " + channelName + " " + modeSequence + " " + parameter + "\r\n";
-	broadcastToChannel(clientSocket, channelName, modeChangeMessage, clients, channels);
+	std::string modeChangeMessage = ":" + nickname + "!~" + username + "@" + std::string(HOSTNAME) + " PRIVMSG " + channelName + " :" + ":" + nickname + " MODE " + channelName + " " + modeSequence + " " + parameter + "\r\n";
+	for (std::vector<int>::iterator memberIt = members.begin(); memberIt != members.end(); ++memberIt) {
+		if (*memberIt != clientSocket) {
+			send(*memberIt, modeChangeMessage.c_str(), modeChangeMessage.length(), 0);
+		}
+	}
 }
 
 void	handleModeCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {
