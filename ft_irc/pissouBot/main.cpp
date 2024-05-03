@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 19:41:21 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 20:28:50 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/03 15:38:23 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,9 @@ int main(int argc, char **argv) {
 
 	std::string port = argv[1];
 	std::string password = argv[2];
-	
+
+	srand(time(NULL));
+
 	pissouBot pissou(port, password);
 	pissou.initClient();
 	

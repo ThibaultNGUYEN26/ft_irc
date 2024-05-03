@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 19:32:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 20:13:45 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/03 12:17:12 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <vector>
+#include <map>
 
 #define EOC "\033[1;1;0m"
 #define MAGENTA "\033[1;35m"
