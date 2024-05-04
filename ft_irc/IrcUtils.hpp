@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   IrcUtils.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:07:57 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 19:54:05 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:25:32 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ void	RPL_INVITING(const std::string& nickname, const std::string& guest, const s
 void	INVITE_MESSAGE(const std::string& guest, const std::string& channelName, const int& clientSocket);
 void	RPL_NOTOPIC(const std::string& nickname, const std::string& channelName, const int& clientSocket);
 void	RPL_TOPIC(const std::string& nickname, const std::string& channelName, const std::string& topic, const int& clientSocket);
-void	RPL_NAMEREPLY(const std::string& nickname, const std::string& channelName, const int& clientSocket, channelMap& channels, clientMap& clients);
 
 /* UTILITY FUNCTIONS */
 bool	isValidNickname(const std::string& nickname, clientMap& clients, int& clientSocket);

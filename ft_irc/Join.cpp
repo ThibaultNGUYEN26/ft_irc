@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Join.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 19:54:55 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:25:42 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 	else {
 		RPL_TOPIC(nickname, channelName, topic, clientSocket);
 	}
-	RPL_NAMEREPLY(nickname, channelName, clientSocket, channels, clients);
 }
 
 void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& channels, int& clientSocket) {

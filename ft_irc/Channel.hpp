@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:49:07 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 16:26:48 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:31:57 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,10 @@ public:
 	const std::string&	getTopic() const;
 	std::vector<int>&	getClients();
 	const std::string&	getKey() const;
-	const int&			getUsers() const;
+	int&				getUsers();
 	const int&			getUserLimit() const;
 	const bool&			getInviteOnly() const;
+	// const bool&			getTopicControl() const;
 
 	void	setTopic(const std::string& topic);
 	void	setInviteOnly(bool status);

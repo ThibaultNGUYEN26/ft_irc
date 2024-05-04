@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:13:58 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 20:14:37 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:25:18 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,29 +107,4 @@ void	RPL_TOPIC(const std::string& nickname, const std::string& channelName, cons
 	std::string	topicMessage = ":" + std::string(HOSTNAME) + " 332 " + nickname + " " + channelName + " :" + topic + "\r\n";
 	std::cout << "THE TOPIC : " << topic << std::endl;
 	send(clientSocket, topicMessage.c_str(), topicMessage.length(), 0);
-}
-
-void	RPL_NAMEREPLY(const std::string& nickname, const std::string& channelName, const int& clientSocket, channelMap& channels, clientMap& clients) {
-std::string nicknames;
-
-channelMap::iterator itChannel = channels.find(channelName);
-std::vector<int>& members = (itChannel->second)->getClients();
-for (std::vector<int>::iterator it = members.begin(); it != members.end(); it++) {
-	std::string currentNickname = (getClientIterator(*it, clients)->second)->getNickname();
-	bool isOperator = (getClientIterator(*it, clients)->second)->getOperator(channelName); // Assuming you have a method to check if the client is an operator
-	if (isOperator) {
-		currentNickname = "@" + currentNickname; // Prepend "@" to the nickname if the client is an operator
-	}
-	nicknames += currentNickname;
-	if (it + 1 != members.end()) {
-		nicknames += " "; // Add space separator if not the last nickname
-	}
-}
-
-std::cout << "THE NICKNAMES : " << nicknames << std::endl;
-
-std::string nameReply = ":" + std::string(HOSTNAME) + " 353 " + nickname + " " + channelName + " :" + nicknames + "\r\n";
-send(clientSocket, nameReply.c_str(), nameReply.length(), 0);
-nameReply = ":" + std::string(HOSTNAME) + " 366 " + nickname + " " + channelName + " :End of /NAMES list\r\n";
-send(clientSocket, nameReply.c_str(), nameReply.length(), 0);
 }

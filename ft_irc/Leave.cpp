@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Leave.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:22:46 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 17:18:58 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:32:01 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ void	executeLeaveCommand(int clientSocket, const std::string& channelName, clien
 		// Send PART message back to the client to confirm leaving
 		std::string leaveConfirm = ":" + nickname + "!~" + username + "@" + std::string(HOSTNAME) + " PART :" + channelName + "\r\n";
 		send(clientSocket, leaveConfirm.c_str(), leaveConfirm.size(), 0);
+		(itChannel->second)->getUsers() -= 1;
 		// Notify all clients in the channel about the member leaving
 		if (!members->empty()) {
 			memberIt = members->begin();

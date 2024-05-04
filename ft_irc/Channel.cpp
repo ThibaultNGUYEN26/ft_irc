@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 17:04:15 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:31:51 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ const	std::string& Channel::getKey() const {
 	return _key;
 }
 
-const int&	Channel::getUsers() const {
+int&	Channel::getUsers() {
 	return _users;
 }
 
@@ -44,6 +44,10 @@ const int&	Channel::getUserLimit() const {
 const bool&		Channel::getInviteOnly() const {
 	return _inviteOnly;
 }
+
+/* const bool&		Channel::getTopicControl() const {
+	return _topicControl;
+} */
 
 void	Channel::addClient(const int& clientSocket) {
 	_clients.push_back(clientSocket);
