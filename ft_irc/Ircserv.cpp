@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 19:53:34 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 20:09:14 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,10 @@ Ircserv::~Ircserv() {
 	for (clientMap::iterator it = _clients.begin(); it != _clients.end(); it++) {
 		delete(it->second);
 		_clients.erase(_clients.find(it->first));
+	}
+	for (channelMap::iterator it = _channels.begin(); it != _channels.end(); it++) {
+		delete(it->second);
+		_channels.erase(_channels.find(it->first));
 	}
 	for (size_t i = 0; i < (_server.fds).size(); i++) {
 		close((_server.fds[i]).fd);

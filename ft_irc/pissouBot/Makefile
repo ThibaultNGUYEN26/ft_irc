@@ -6,7 +6,7 @@
 #    By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/01 19:30:09 by rchbouki          #+#    #+#              #
-#    Updated: 2024/05/02 19:27:33 by thibnguy         ###   ########.fr        #
+#    Updated: 2024/05/04 20:06:47 by thibnguy         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ SRCS		=	pissouBot.cpp \
 OBJS		=	$(addprefix ${OBJECTS}/, $(SRCS:.cpp=.o))
 
 CC			=	c++ -std=c++98
-CFLAGS		=	-Wall -Wextra -Werror -g -fsanitize=address -fsanitize=undefined -pedantic
+CFLAGS		=	-Wall -Wextra -Werror -g #-fsanitize=address -fsanitize=undefined -pedantic
 CINCLUDES	=	-I ${INCLUDES}
 
 BLACK		=	"\033[1;30m"
