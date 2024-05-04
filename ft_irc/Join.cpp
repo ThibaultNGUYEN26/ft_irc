@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:19:47 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:25:42 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:54:25 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,20 +27,15 @@ void	executeJoinCommand(int clientSocket, const std::string& channelName, const 
 		channels[channelName] = new Channel(channelName);
 		(channels[channelName])->addClient(clientSocket);
 		(itClient->second)->addChannel(channelName, true);
-		std::cout << "operator pri in join: " << (itClient->second)->getOperator(channelName) << std::endl;
 	}
 	else {
 		if (!((itChannel->second)->getKey().empty()) && key != (itChannel->second)->getKey()) {
 			return ERRINCORRECTKEY(nickname, channelName, clientSocket);
 		}
-		
-		std::cout << "limit of channel : " << (itChannel->second)->getUserLimit() << " and current users : " << (itChannel->second)->getUsers() << std::endl;
 
 		if ((itChannel->second)->getUserLimit() != -1 && (itChannel->second)->getUserLimit() <= (itChannel->second)->getUsers()) {
 			return ERRUSERLIMIT(nickname, channelName, clientSocket);
 		}
-		
-		std::cout << (itClient->second)->getIsInvited(channelName) << std::endl;
 		
 		if ((itChannel->second)->getInviteOnly() && !(itClient->second)->getIsInvited(channelName)) {
 			return ERRINVITEONLY(nickname, channelName, clientSocket);
@@ -81,7 +76,6 @@ void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& cha
 		return ERRMOREPARAMS(clientSocket, "", "JOIN");
 	}
 	std::getline(iss, keys, '\r');
-	std::cout << keys << std::endl;
 	std::istringstream ssChannel(channelsToJoin), ssKey(keys);
 	while (std::getline(ssChannel, channelName, ',')) {
 		if (channelName[channelName.length() - 1] == '\n') {
@@ -96,7 +90,6 @@ void	handleJoinCommand(std::string& command, clientMap& clients, channelMap& cha
 			std::getline(ssKey, key, ',');
 			checkNC(key);
 		}
-		std::cout << "Name *" << channelName << "*, key *" << key << "*\n";
 		if (channelName.empty()) {
 			ERRMOREPARAMS(clientSocket, "", "JOIN");
 		}

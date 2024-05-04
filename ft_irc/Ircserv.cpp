@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 17:25:18 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:53:34 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ void	Ircserv::initServer() {
 	int enable = 1;
 	if (setsockopt(_server.sfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, (char *)&enable, sizeof(enable)))
 		error("Failure to execute setsockopt().");
+	fcntl(_server.sfd, F_SETFL, O_NONBLOCK);
 	if (bind(_server.sfd, (struct sockaddr*)&_server.hints, sizeof(_server.hints)) < 0) {
 		error("Failure to bind to port.");
 	}
@@ -80,14 +81,14 @@ void	Ircserv::eraseClient(int &clientSocket) {
 }
 
 void signalHandler(int signum) {
-    std::cout << " Interrupt signal (" << signum << ") received.\n";
-
-    exit(signum);
+	std::cout << " Interrupt signal (" << signum << ") received.\n";
+	exit(signum);
 }
 
 void Ircserv::runServer() {
 	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
 
+	std::string command;
 	signal(SIGINT, signalHandler);
 	while (true) {
 		/*
@@ -103,7 +104,7 @@ void Ircserv::runServer() {
 		// We go through each file descriptor in the pollfd structure
 		for (size_t i = 0; i < (_server.fds).size(); i++) {
 			// If revents in fd[i] (events occured) and the event is data that is read
- 			if ((_server.fds[i]).revents & POLLIN) {
+ 			if ((_server.fds[i]).revents) {
 				// If the POLLIN event that occured is in the server's fd => potential client trying to connect
 				if ((_server.fds[i]).fd == _server.sfd) {
 					// Listening socket is ready, meaning an incoming connection
@@ -128,67 +129,70 @@ void Ircserv::runServer() {
 					ssize_t bytesRead = recv((_server.fds[i]).fd, buffer, sizeof(buffer) - 1, 0);
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0';
-						std::string command(buffer);
+						std::string commandBuffer(buffer);
+						if (command.empty() && commandBuffer.find('\n') != std::string::npos) {
+							command = commandBuffer;
+						}
 						// Print the received command to the console
-						std::cout << "Received command from client: " << buffer << std::endl;
-						if (command.find("JOIN") == 0) {
-							handleJoinCommand(command, _clients, _channels, _server.fds[i].fd);
-						}
-						else if (command.find("PART") == 0) {
-							handleLeaveCommand(command, _clients, _channels, _server.fds[i].fd);
-						}
-						else if (command.find("KICK") == 0) {
-							handleKickCommand(command, _clients, _channels, _server.fds[i].fd);
-						}
-						else if (command.find("PRIVMSG") == 0) {
-							std::istringstream iss(command);
-							std::string	target, message;
-							std::getline(iss, target, ' ');
-							std::getline(iss, target, ' ');
-							std::getline(iss, message, ':');
-							std::getline(iss, message, '\r');
-							std::cout << "Message: " << message << std::endl;
-							if (target[0] == '#')
-								broadcastToChannel(_server.fds[i].fd, target, message, _clients, _channels);
-							else
-								sendDM(_server.fds[i].fd, target, message, _clients);
-							// dcc send {target} {file}
-							// dcc get {sender}
-						}
-						else if (command.find("TOPIC") == 0) {
-							handleTopicCommand(command, _clients, _channels, _server.fds[i].fd);
-						}
-						else if (command.find("PING") == 0) {
-							std::istringstream iss(command);
-							std::string	token;
-							std::getline(iss, token, ' ');
-							std::getline(iss, token, '\r');
-							std::string fullMessage = "PONG " + token + "\r\n";
-							std::cout << fullMessage << std::endl;
-							send((_server.fds[i]).fd, fullMessage.c_str(), fullMessage.length(), 0);
-						}
-						else if (command.find("QUIT") == 0) {
-							eraseClient((_server.fds[i]).fd);
-							close((_server.fds[i]).fd);
-							(_server.fds).erase((_server.fds).begin() + i);
-							--i;
-						}
-						else if (command.find("INVITE") == 0) {
-							handleInviteCommand(command, _clients, _channels, _server.fds[i].fd);
-						}
-						else if (command.find("MODE") == 0) {
-							handleModeCommand(command, _clients, _channels, _server.fds[i].fd);
+						if (command.find('\n') != std::string::npos) {
+							if (command.find("JOIN") == 0) {
+								handleJoinCommand(command, _clients, _channels, _server.fds[i].fd);
+							}
+							else if (command.find("PART") == 0) {
+								handleLeaveCommand(command, _clients, _channels, _server.fds[i].fd);
+							}
+							else if (command.find("KICK") == 0) {
+								handleKickCommand(command, _clients, _channels, _server.fds[i].fd);
+							}
+							else if (command.find("PRIVMSG") == 0) {
+								std::istringstream iss(command);
+								std::string	target, message;
+								std::getline(iss, target, ' ');
+								std::getline(iss, target, ' ');
+								std::getline(iss, message, ':');
+								std::getline(iss, message, '\r');
+								if (target[0] == '#')
+									broadcastToChannel(_server.fds[i].fd, target, message, _clients, _channels);
+								else
+									sendDM(_server.fds[i].fd, target, message, _clients);
+								// dcc send {target} {file}
+								// dcc get {sender}
+							}
+							else if (command.find("TOPIC") == 0) {
+								handleTopicCommand(command, _clients, _channels, _server.fds[i].fd);
+							}
+							else if (command.find("PING") == 0) {
+								std::istringstream iss(command);
+								std::string	token;
+								std::getline(iss, token, ' ');
+								std::getline(iss, token, '\r');
+								std::string fullMessage = "PONG " + token + "\r\n";
+								send((_server.fds[i]).fd, fullMessage.c_str(), fullMessage.length(), 0);
+							}
+							else if (command.find("QUIT") == 0) {
+								eraseClient((_server.fds[i]).fd);
+								close((_server.fds[i]).fd);
+								(_server.fds).erase((_server.fds).begin() + i);
+								--i;
+							}
+							else if (command.find("INVITE") == 0) {
+								handleInviteCommand(command, _clients, _channels, _server.fds[i].fd);
+							}
+							else if (command.find("MODE") == 0) {
+								handleModeCommand(command, _clients, _channels, _server.fds[i].fd);
+							}
+							else {
+								std::istringstream iss(command);
+								std::string cmd;
+								std::getline(iss, cmd, ' ');
+								checkNC(cmd);
+								std::string nickname = (getClientIterator(_server.fds[i].fd, _clients)->second)->getNickname();
+								ERRUNKNOWNCOMMAND(_server.fds[i].fd, nickname, cmd);
+							}
+							command = "";
 						}
 						else {
-							std::istringstream iss(command);
-							std::string cmd;
-							std::getline(iss, cmd, ' ');
-							checkNC(cmd);
-							std::string nickname = (getClientIterator(_server.fds[i].fd, _clients)->second)->getNickname();
-							/* if (cmd fini avec un ctrl d il faut la save pour la commande next) {
-								
-							} */
-							ERRUNKNOWNCOMMAND(_server.fds[i].fd, nickname, cmd);
+							command += commandBuffer;
 						}
 					} else {
 						// Connection closed by client or error reading

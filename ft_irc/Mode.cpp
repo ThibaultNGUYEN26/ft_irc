@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Mode.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:21:51 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 17:18:58 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:54:51 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ void executeModeCommand(int clientSocket, const std::string& channelName, const 
 	}
 	// Check if the client is an operator
 	if ((itClient->second)->getOperator(channelName) == false) {
-		std::cout << "operator pri in mode is false " << std::endl;
 		return ERRNOTOPERATOR(nickname, channelName, clientSocket);
 	}
 	std::vector<int>& members = (channelIt->second)->getClients();
@@ -109,16 +108,13 @@ void	handleModeCommand(std::string& command, clientMap& clients, channelMap& cha
 	if (channelName.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "MODE");
 	}
-	std::cout << "Channel Name: *" << channelName << "*" << std::endl;
 	std::getline(iss, modeCommand, ' ');
 	if (!checkNC(modeCommand) && modeCommand[modeCommand.length() - 1] != '\r') {
 		std::getline(iss, param, '\r');
 		checkNC(param);
-		std::cout << "key : " << param << std::endl;
 	}
 	else if (modeCommand[modeCommand.length() - 1] == '\r') {
 		modeCommand.erase(modeCommand.length() - 1);
 	}
-	std::cout << "After : Mode: *" << modeCommand << "* Param: *" << param << "*" << std::endl;
 	executeModeCommand(clientSocket, channelName, modeCommand, param, clients, channels);
 }

@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:24:38 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:39:58 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:55:49 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,5 @@ void	handleTopicCommand(std::string& command, clientMap& clients, channelMap& ch
 	if (topic.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "TOPIC");
 	}
-	std::cout << "Topic : " << topic << " in Channel : " << channelName << std::endl;
 	executeTopicCommand(clientSocket, channelName, topic, clients, channels);
 }

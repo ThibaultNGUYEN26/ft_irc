@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 20:25:19 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/03 22:59:36 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:53:56 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ void sendDM(int senderSocket, const std::string &target, const std::string &mess
 		return ;
 	}
 	std::string fullMessage = ":" + nickname + " PRIVMSG " + target + " :" + message + "\r\n";
-	std::cout << fullMessage << std::endl;
 	send(targetSocket, fullMessage.c_str(), fullMessage.length(), 0);
 }
 

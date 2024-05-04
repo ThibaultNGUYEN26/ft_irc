@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 19:19:54 by thibnguy          #+#    #+#             */
-/*   Updated: 2024/05/04 13:24:06 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 20:04:03 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,7 +209,7 @@ void	ft_pissouBot(char *buffer, int targetSocket) {
 
 		// Launch Explorer video
 		else if (searchKeyword(command, makeVector(explorer))) {
-			system("flatpak run org.mozilla.firefox 2>/dev/null https://www.instagram.com/reel/CupVr-AIPHN/?igsh=NG9zeHVidXBtY3Bz");
+			system("flatpak run org.mozilla.firefox 2>/dev/null https://42explorer.github.io");
 		}
 
 		// Search on YouTube or Google

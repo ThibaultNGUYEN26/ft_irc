@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:22:46 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:32:01 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:54:37 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,12 @@ void	executeLeaveCommand(int clientSocket, const std::string& channelName, clien
 		// If the channel becomes empty, remove it from the channels map
 		if (members->empty()) {
 			channels.erase(itChannel);
+		} else {
+			(itChannel->second)->getUsers() -= 1;
 		}
 		// Send PART message back to the client to confirm leaving
 		std::string leaveConfirm = ":" + nickname + "!~" + username + "@" + std::string(HOSTNAME) + " PART :" + channelName + "\r\n";
 		send(clientSocket, leaveConfirm.c_str(), leaveConfirm.size(), 0);
-		(itChannel->second)->getUsers() -= 1;
 		// Notify all clients in the channel about the member leaving
 		if (!members->empty()) {
 			memberIt = members->begin();
@@ -59,7 +60,6 @@ void	handleLeaveCommand(std::string& command, clientMap& clients, channelMap& ch
 	std::string channelName;
 	std::getline(iss, channelName, '\r');
 	checkNC(channelName);
-	std::cout << "channelName *" << channelName << "*\n";
 	if (channelName.empty()) {
 		return ERRMOREPARAMS(clientSocket, "", "PART");
 	}

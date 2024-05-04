@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Register.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:28:16 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/01 20:56:39 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:55:17 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ bool	registerClient(int& clientSocket, const std::string& _password, clientMap& 
 
 		memset(buffer, 0, sizeof(buffer));
 		ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer) - 1, 0);
-		if (bytesRead <= 0) { 
+		if (bytesRead <= 0) {
 			std::cout << "Failed to receive data or connection closed." << std::endl;
 			return false;
 		}
@@ -33,7 +33,6 @@ bool	registerClient(int& clientSocket, const std::string& _password, clientMap& 
 		std::string receivedCommand(buffer);
 		std::istringstream iss(receivedCommand);
 		std::string	cmd;
-		std::cout << receivedCommand << std::endl;
 		while (std::getline(iss, cmd, ' ')) {
 			if (cmd == "CAP") {
 				std::string	capParam;
@@ -81,7 +80,6 @@ bool	registerClient(int& clientSocket, const std::string& _password, clientMap& 
 				if (checkNC(receivedUsername) == true) {
 					gotEnd = true;
 				}
-				std::cout << "*" << receivedUsername << "*" << std::endl;
 				if (receivedUsername.empty()) {
 					ERRMOREPARAMS(clientSocket, receivedNickname, cmd);
 					return false;
