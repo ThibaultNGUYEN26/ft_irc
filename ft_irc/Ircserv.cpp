@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:55:33 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 17:25:18 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,9 +79,16 @@ void	Ircserv::eraseClient(int &clientSocket) {
 	}
 }
 
+void signalHandler(int signum) {
+    std::cout << " Interrupt signal (" << signum << ") received.\n";
+
+    exit(signum);
+}
+
 void Ircserv::runServer() {
 	std::cout << WHITE "Port: " BLUE << _port << WHITE " | Password: " BLUE << _password << EOC << std::endl;
 
+	signal(SIGINT, signalHandler);
 	while (true) {
 		/*
 			Wait for an event on any of the monitored file descriptors using poll()
