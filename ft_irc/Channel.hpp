@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:49:07 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:31:57 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:39:13 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ public:
 	int&				getUsers();
 	const int&			getUserLimit() const;
 	const bool&			getInviteOnly() const;
-	// const bool&			getTopicControl() const;
+	const bool&			getTopicControl() const;
 
 	void	setTopic(const std::string& topic);
 	void	setInviteOnly(bool status);

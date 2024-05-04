@@ -6,13 +6,13 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/06 17:52:17 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:31:51 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:39:29 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <Channel.hpp>
 
-Channel::Channel(std::string channelName) : _channelName(channelName), _topic(""), _inviteOnly(false), _key(""), _users(0), _userLimit(-1) {
+Channel::Channel(std::string channelName) : _channelName(channelName), _topic(""), _inviteOnly(false), _topicControl(true), _key(""), _users(0), _userLimit(-1) {
 }
 
 Channel::~Channel() {}
@@ -45,9 +45,9 @@ const bool&		Channel::getInviteOnly() const {
 	return _inviteOnly;
 }
 
-/* const bool&		Channel::getTopicControl() const {
+const bool&		Channel::getTopicControl() const {
 	return _topicControl;
-} */
+}
 
 void	Channel::addClient(const int& clientSocket) {
 	_clients.push_back(clientSocket);

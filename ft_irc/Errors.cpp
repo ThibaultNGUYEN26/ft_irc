@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 18:13:58 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 16:25:18 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:38:22 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,22 +43,22 @@ void	WELCOME_001(const std::string& nickname, const int& clientSocket) {
 }
 
 void	ERRNOSUCHCHANNEL(const std::string& nickname, const std::string& channelName, const int& clientSocket) {
-	std::string	_fail = std::string(HOSTNAME) + " 403 " + nickname + " " + channelName + " :No such channel\r\n";
+	std::string	_fail = ":" + std::string(HOSTNAME) + " 403 " + nickname + " " + channelName + " :No such channel\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
 void	ERRNOTONCHANNEL(const std::string& nickname, const std::string& channelName, const int& clientSocket) {
-	std::string	_fail = std::string(HOSTNAME) + " 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
+	std::string	_fail = ":" + std::string(HOSTNAME) + " 442 " + nickname + " " + channelName + " :You're not on that channel\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
 void	ERRNOTINCHANNEL(const std::string& nickname, const std::string& other, const std::string& channelName, const int& clientSocket) {
-	std::string	_fail = std::string(HOSTNAME) + " 441 " + nickname + " " + other + " " + channelName + " :They're not on that channel\r\n";
+	std::string	_fail = ":" + std::string(HOSTNAME) + " 441 " + nickname + " " + other + " " + channelName + " :They're not on that channel\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
 void	ERRCLIENTUNKNOWN(const std::string& nickname, const std::string& channelName, const int& clientSocket) {
-	std::string	_fail = std::string(HOSTNAME) + " 442 " + nickname + " " + channelName + " :Client just doesn't exist\r\n";
+	std::string	_fail = ":" + std::string(HOSTNAME) + " 442 " + nickname + " " + channelName + " :Client just doesn't exist\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
@@ -73,12 +73,12 @@ void	ERRUSERLIMIT(const std::string& nickname, const std::string& channelName, c
 }
 
 void	ERRNOTOPERATOR(const std::string& nickname, const std::string& channelName, const int& clientSocket) {
-	std::string	_fail = std::string(HOSTNAME) + " 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
+	std::string	_fail = ":" + std::string(HOSTNAME) + " 482 " + nickname + " " + channelName + " :You're not on channel operator\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
 void	ERRINCHANNEL(const std::string& nickname, const std::string& guest, const std::string& channelName, const int& clientSocket) {
-	std::string	_fail = std::string(HOSTNAME) + " 443 " + nickname + " " + guest + " " + channelName + ":is already on channel\r\n";
+	std::string	_fail = ":" + std::string(HOSTNAME) + " 443 " + nickname + " " + guest + " " + channelName + ":is already on channel\r\n";
 	send(clientSocket, _fail.c_str(), _fail.size(), 0);
 }
 
@@ -93,7 +93,7 @@ void	RPL_INVITING(const std::string& nickname, const std::string& guest, const s
 }
 
 void	INVITE_MESSAGE(const std::string& guest, const std::string& channelName, const int& clientSocket) {
-	std::string	inviteMessage = std::string(HOSTNAME) + " INVITE :" + channelName + " " + guest + "\r\n";
+	std::string	inviteMessage = ":" + std::string(HOSTNAME) + " INVITE :" + channelName + " " + guest + "\r\n";
 	send(clientSocket, inviteMessage.c_str(), inviteMessage.length(), 0);
 }
 

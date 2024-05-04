@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Topic.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rchbouki <rchbouki@student.42nice.fr>      +#+  +:+       +#+        */
+/*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 21:24:38 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 17:18:58 by rchbouki         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:39:58 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ void executeTopicCommand(int clientSocket, const std::string& channelName, const
 	channelMap::iterator channelIt = channels.find(channelName);
 	if (channelIt == channels.end()) {
 		return ERRNOSUCHCHANNEL(nickname, channelName, clientSocket);
+	}
+	if ((channelIt->second)->getTopicControl() == false) {
+		return ;
 	}
 	// Check if a new topic is provided
 	if (!newTopic.empty()) {
