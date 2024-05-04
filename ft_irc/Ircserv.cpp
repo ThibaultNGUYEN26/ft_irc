@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/02 15:56:41 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 13:36:37 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,6 +176,9 @@ void Ircserv::runServer() {
 							std::getline(iss, cmd, ' ');
 							checkNC(cmd);
 							std::string nickname = (getClientIterator(_server.fds[i].fd, _clients)->second)->getNickname();
+							/* if (cmd fini avec un ctrl d il faut la save pour la commande next) {
+								
+							} */
 							ERRUNKNOWNCOMMAND(_server.fds[i].fd, nickname, cmd);
 						}
 					} else {
