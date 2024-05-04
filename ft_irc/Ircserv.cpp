@@ -6,7 +6,7 @@
 /*   By: thibnguy <thibnguy@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/01 16:12:54 by rchbouki          #+#    #+#             */
-/*   Updated: 2024/05/04 13:36:37 by thibnguy         ###   ########.fr       */
+/*   Updated: 2024/05/04 16:55:33 by thibnguy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,8 @@ void Ircserv::runServer() {
 								broadcastToChannel(_server.fds[i].fd, target, message, _clients, _channels);
 							else
 								sendDM(_server.fds[i].fd, target, message, _clients);
+							// dcc send {target} {file}
+							// dcc get {sender}
 						}
 						else if (command.find("TOPIC") == 0) {
 							handleTopicCommand(command, _clients, _channels, _server.fds[i].fd);
